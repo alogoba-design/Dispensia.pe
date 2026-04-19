@@ -670,6 +670,24 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // ═════════════════════════════════════════════════════
 
 // ── MENÚS ACTIVOS (controlado desde el admin) ──
+function getFijosSemanalesLanding() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('dispensia_fijos_semanales') || 'null');
+    if(stored) return stored;
+  } catch(e){}
+  // Fallback a fijos base hardcodeados
+  return {
+    mesa:        ['DIS-05','DIS-01','DIS-13'],
+    express:     ['DIS-14','DIS-29','DIS-08'],
+    nortena:     ['DIS-02','DIS-16','DIS-15'],
+    criolla:     ['DIS-05','DIS-17','DIS-04'],
+    fusion:      ['DIS-28','DIS-30','DIS-21'],
+    buena:       ['DIS-23','DIS-20','DIS-24'],
+    criollolima: ['DIS-26','DIS-19','DIS-36'],
+    fit:         ['DIS-34','DIS-32','DIS-37'],
+    custom:      [],
+  };
+}
 function getMenusActivos(){
   try {
     const stored = localStorage.getItem('dispensia_menus_activos');
@@ -716,9 +734,18 @@ function renderPopupLeft(){
   if(!m)return;
   const left=document.getElementById('popup-left');
   if(m.esCustom){renderCustomLeft(left);return;}
-  const nFijos=3; // siempre 3 fijos — plan3=0 eligen, plan5=2, plan7=4
+  const nFijos=3;
   const nAd=nDias-nFijos;
-  const fijosHTML=m.fijos.slice(0,nFijos).map(p=>`
+  // Usar fijos semanales de Supabase si existen
+  const fijosSemanales = getFijosSemanalesLanding();
+  const fijosIDs = fijosSemanales[menuPopup] || [];
+  // Rebuild fijos array from IDs using TODOS + MENUS data
+  const todosMap = {};
+  [...(m.fijos||[]),...(m.elige||[])].forEach(p=>{ if(p.id) todosMap[p.id]=p; });
+  const fijosActivos = fijosIDs.length === 3
+    ? fijosIDs.map(id => todosMap[id] || m.fijos.find(p=>p.id===id) || {e:'🍽️',n:id,t:''})
+    : m.fijos.slice(0, nFijos);
+  const fijosHTML=fijosActivos.map(p=>`
     <div class="dia-row">
       <span class="dia-ilu">${p.e}</span>
       <div class="dia-info"><p class="dia-nm">${p.n}</p><p class="dia-tp">${p.t}</p></div>
@@ -1150,7 +1177,31 @@ function renderPopupPlanes(){
   }
 }
 
-renderGrid();renderPlanesBtns();renderPricing();
+
+// ── Cargar config desde Supabase al iniciar ──
+async function cargarConfigDesdeSupabase() {
+  const SB_URL = 'https://dnpkobwulscmowkefgeg.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRucGtvYnd1bHNjbW93a2VmZ2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzQ4MDYsImV4cCI6MjA5MDcxMDgwNn0.Idj6NSUFYQg44BnLRJa23EXSHZkJG5vz6tfnfCGEIt8';
+  try {
+    const r = await fetch(
+      `${SB_URL}/rest/v1/dispensia_config?select=id,value`,
+      { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
+    );
+    if(!r.ok) return;
+    const rows = await r.json();
+    rows.forEach(row => {
+      if(row.id === 'menus_activos')   localStorage.setItem('dispensia_menus_activos',   JSON.stringify(row.value));
+      if(row.id === 'config')          localStorage.setItem('dispensia_config',           JSON.stringify(row.value));
+      if(row.id === 'platos_off')      localStorage.setItem('dispensia_platos_off',       JSON.stringify(row.value));
+      if(row.id === 'fijos_semanales') localStorage.setItem('dispensia_fijos_semanales',  JSON.stringify(row.value));
+    });
+  } catch(e) { /* Si falla, usa localStorage local como fallback */ }
+}
+
+// Cargar config de Supabase y luego renderizar
+cargarConfigDesdeSupabase().then(() => {
+  renderGrid();renderPlanesBtns();renderPricing();
+});
 </script>
 </body>
 </html>
