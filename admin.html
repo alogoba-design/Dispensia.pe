@@ -671,7 +671,7 @@ tr:hover td{background:var(--vxl);}
         </select>
       </div>
       <div class="card">
-        <div class="card-hdr"><h2 id="port-count">44 platos en el portafolio</h2></div>
+        <div class="card-hdr"><h2 id="port-count">39 platos en el portafolio</h2></div>
         <div class="card-body"><div class="table-wrap">
           <table><thead><tr>
             <th>ID</th><th>Plato</th><th>Proteína</th><th>Categoría</th><th>Tiempo</th>
@@ -683,33 +683,7 @@ tr:hover td{background:var(--vxl);}
 
     <!-- ══ PRECIOS ══ -->
     <div id="tab-precios" class="tab-panel">
-      <div class="card" style="margin-bottom:16px;">
-        <div class="card-hdr">
-          <h2>💰 Precios de venta por menú</h2>
-          <button class="btn btn-sm" onclick="guardarPreciosMenus()" style="background:var(--v);color:#fff;">💾 Guardar precios</button>
-        </div>
-        <div class="card-body">
-          <p style="font-size:12px;color:var(--g);margin-bottom:14px;">Edita directamente en las celdas. Los cambios se guardan en Supabase y el landing los aplica al instante. ⭐ = plan más vendido.</p>
-          <div style="overflow-x:auto;">
-            <table style="width:100%;border-collapse:collapse;font-size:12px;">
-              <thead><tr style="background:#F5F5F5;">
-                <th style="padding:8px 12px;text-align:left;font-weight:700;color:#555;border-bottom:2px solid var(--bd);">Menú</th>
-                <th style="padding:6px;text-align:center;color:#C0392B;border-bottom:2px solid var(--bd);">3d·2p</th>
-                <th style="padding:6px;text-align:center;color:#C0392B;border-bottom:2px solid var(--bd);">3d·4p</th>
-                <th style="padding:6px;text-align:center;color:#C0392B;border-bottom:2px solid var(--bd);">3d·6p</th>
-                <th style="padding:6px;text-align:center;color:#0F5D2E;border-bottom:2px solid var(--bd);">5d·2p</th>
-                <th style="padding:6px;text-align:center;background:#E8F5EE;color:#0F5D2E;font-weight:700;border-bottom:2px solid var(--bd);">5d·4p ⭐</th>
-                <th style="padding:6px;text-align:center;color:#0F5D2E;border-bottom:2px solid var(--bd);">5d·6p</th>
-                <th style="padding:6px;text-align:center;color:#1565C0;border-bottom:2px solid var(--bd);">7d·2p</th>
-                <th style="padding:6px;text-align:center;color:#1565C0;border-bottom:2px solid var(--bd);">7d·4p</th>
-                <th style="padding:6px;text-align:center;color:#1565C0;border-bottom:2px solid var(--bd);">7d·6p</th>
-              </tr></thead>
-              <tbody id="precios-menus-tbody"></tbody>
-            </table>
-          </div>
-          <p id="precios-saved-msg" style="font-size:12px;color:var(--v);display:none;margin-top:10px;"></p>
-        </div>
-      </div>
+      <div class="card" style="margin-bottom:16px;"><div class="card-hdr"><h2>💰 Precios por menú</h2><button class="btn btn-sm" onclick="guardarPreciosMenus()" style="background:var(--v);color:#fff;padding:6px 16px;">💾 Guardar</button></div><div class="card-body"><p style="font-size:12px;color:var(--g);margin-bottom:12px;">Edita en las celdas. Se guarda en Supabase y el landing lo aplica al instante. ⭐ = plan más vendido.</p><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr style="background:#F5F5F5;"><th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--bd);">Menú</th><th style="padding:6px;text-align:center;color:#C0392B;border-bottom:2px solid var(--bd);">3d·2p</th><th style="padding:6px;text-align:center;color:#C0392B;border-bottom:2px solid var(--bd);">3d·4p</th><th style="padding:6px;text-align:center;color:#C0392B;border-bottom:2px solid var(--bd);">3d·6p</th><th style="padding:6px;text-align:center;color:#0F5D2E;border-bottom:2px solid var(--bd);">5d·2p</th><th style="padding:6px;text-align:center;background:#E8F5EE;color:#0F5D2E;font-weight:700;border-bottom:2px solid var(--bd);">5d·4p ⭐</th><th style="padding:6px;text-align:center;color:#0F5D2E;border-bottom:2px solid var(--bd);">5d·6p</th><th style="padding:6px;text-align:center;color:#1565C0;border-bottom:2px solid var(--bd);">7d·2p</th><th style="padding:6px;text-align:center;color:#1565C0;border-bottom:2px solid var(--bd);">7d·4p</th><th style="padding:6px;text-align:center;color:#1565C0;border-bottom:2px solid var(--bd);">7d·6p</th></tr></thead><tbody id="precios-menus-tbody"></tbody></table></div><p id="precios-saved-msg" style="font-size:12px;color:var(--v);display:none;margin-top:8px;"></p></div></div>
       <div class="kpi-grid">
         <div class="kpi-card green"><div class="kpi-label">Break-even semanal</div><div class="kpi-val">14</div><div class="kpi-sub">cajas/sem (plan 4p×5días)</div></div>
         <div class="kpi-card"><div class="kpi-label">Margen bruto variable</div><div class="kpi-val">32%</div><div class="kpi-sub">precio - costo variable</div></div>
@@ -751,57 +725,56 @@ const COSTO_VAR = {2:62, 4:100.5, 6:138}; // por caja (ing+empaque+delivery)
 const FIJOS_MES = 550; // marketing+app+misc
 
 const PORTAFOLIO = [
-  // {id, n, p, pp, pk, otros, c, t}  — costo 4p sin marinar (proteína sellada al vacío limpia)
-  // CRIOLLO
-  {id:'DIS-01a',n:'Estofado de Pollo',              p:'Pollo presa',    pp:4.0, pk:0.6,otros:11,c:'Criollo',    t:50},
-  {id:'DIS-01b',n:'Estofado de Res',                p:'Res cadera',     pp:22.0,pk:0.5,otros:11,c:'Criollo',    t:55},
-  {id:'DIS-02a',n:'Adobo de Chancho',               p:'Cerdo bondiola', pp:18.0,pk:0.6,otros:12,c:'Criollo',    t:45},
-  {id:'DIS-03a',n:'Locro con Pollo a la Plancha',   p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:14,c:'Criollo',    t:40},
-  {id:'DIS-03b',n:'Locro con Bistec',               p:'Res cadera',     pp:22.0,pk:0.3,otros:14,c:'Criollo',    t:40},
-  {id:'DIS-05', n:'Ají de Gallina',                 p:'Pollo pechuga',  pp:4.5, pk:1.0,otros:15,c:'Criollo',    t:55},
-  {id:'DIS-07', n:'Picante de Carne Criollo',       p:'Res cadera',     pp:22.0,pk:0.4,otros:10,c:'Criollo',    t:65},
-  {id:'DIS-08', n:'Ceviche de Pollo',               p:'Pollo presa',    pp:4.0, pk:0.4,otros:10,c:'Criollo',    t:30},
-  {id:'DIS-09', n:'Estofado Verde de Pollo',        p:'Pollo presa',    pp:4.0, pk:0.6,otros:10,c:'Criollo',    t:50},
-  {id:'DIS-10', n:'Pollo a la Mostaza',             p:'Pollo presa',    pp:4.0, pk:0.6,otros:9, c:'Criollo',    t:40},
-  {id:'DIS-11', n:'Seco de Res',                    p:'Res cadera',     pp:22.0,pk:0.4,otros:12,c:'Criollo',    t:60},
-  // MENESTRAS
-  {id:'DIS-12', n:'Lentejas Guisadas con Pollo',    p:'Pollo presa',    pp:4.0, pk:0.5,otros:9, c:'Menestras',  t:45},
-  // ARROCES
-  {id:'DIS-13', n:'Arroz con Pollo',                p:'Pollo presa',    pp:4.0, pk:0.6,otros:9, c:'Arroces',    t:45},
-  {id:'DIS-14', n:'Arroz Chaufa Carnívoro',         p:'Mixta (3 prot)', pp:10.0,pk:0.6,otros:10,c:'Arroces',    t:25},
-  {id:'DIS-15', n:'Arroz con Carne Norteña',        p:'Res cadera',     pp:22.0,pk:0.4,otros:11,c:'Arroces',    t:45},
-  {id:'DIS-16', n:'Seco de Pollo Norteño',          p:'Pollo presa',    pp:4.0, pk:0.8,otros:14,c:'Arroces',    t:50},
-  {id:'DIS-17a',n:'Lomo Saltado de Res',            p:'Res lomo fino',  pp:32.0,pk:0.5,otros:12,c:'Arroces',    t:40},
-  {id:'DIS-17b',n:'Lomo Saltado de Pollo',          p:'Pollo pechuga',  pp:4.5, pk:0.5,otros:12,c:'Arroces',    t:40},
-  {id:'DIS-18', n:'Arroz a la Jardinera',           p:'Pollo presa',    pp:4.0, pk:0.5,otros:9, c:'Arroces',    t:40},
-  {id:'DIS-36', n:'Arroz Tapado',                   p:'Res molida',     pp:18.0,pk:0.4,otros:10,c:'Arroces',    t:35},
-  // PASTAS
-  {id:'DIS-19a',n:'Tallarines Rojos con Pollo',     p:'Pollo presa',    pp:4.0, pk:0.6,otros:10,c:'Pastas',     t:35},
-  {id:'DIS-19b',n:'Tallarines Rojos con Carne Molida',p:'Res molida',   pp:18.0,pk:0.4,otros:10,c:'Pastas',     t:35},
-  {id:'DIS-20a',n:'Tallarines Verdes + Bistec',     p:'Res cadera',     pp:22.0,pk:0.5,otros:14,c:'Pastas',     t:35},
-  {id:'DIS-20b',n:'Tallarines Verdes + Milanesa',   p:'Pollo pechuga',  pp:4.5, pk:0.5,otros:14,c:'Pastas',     t:35},
-  {id:'DIS-21', n:'Fettuccini Huancaína + Lomo',    p:'Res lomo fino',  pp:32.0,pk:0.4,otros:14,c:'Pastas',     t:35},
-  {id:'DIS-22', n:'Pasta en Salsa Blanca',          p:'Pollo/Res',      pp:8.0, pk:0.4,otros:10,c:'Pastas',     t:30},
-  {id:'DIS-23', n:'Spaghetti Ragú Bolognese',       p:'Res molida',     pp:18.0,pk:0.4,otros:11,c:'Pastas',     t:105},
-  {id:'DIS-24', n:'Risotto con Pollo',              p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:13,c:'Pastas',     t:60},
-  // AL HORNO
-  {id:'DIS-25', n:'Pollo al Horno Criollo + Ens. Rusa',p:'Pollo entero',pp:4.0,pk:0.8,otros:12,c:'Al Horno',   t:90},
-  {id:'DIS-26', n:'Pollo al Horno + Puré',          p:'Pollo presa',    pp:4.0, pk:0.8,otros:11,c:'Al Horno',   t:50},
-  {id:'DIS-27', n:'Pollo BBQ con Papas',            p:'Pollo muslo',    pp:4.0, pk:0.7,otros:11,c:'Al Horno',   t:50},
-  {id:'DIS-39', n:'Pollo con Champiñones a la Crema',p:'Pollo presa',   pp:4.0, pk:0.7,otros:13,c:'Al Horno',   t:35},
-  // FUSIÓN
-  {id:'DIS-28', n:'Cerdo Agridulce Crocante',       p:'Cerdo bondiola', pp:18.0,pk:0.5,otros:12,c:'Fusión',     t:40},
-  {id:'DIS-29', n:'Chijaukay',                      p:'Pollo pechuga',  pp:4.5, pk:0.6,otros:10,c:'Fusión',     t:20},
-  {id:'DIS-30', n:'Tonkatsu con Ensalada Nikkei',   p:'Cerdo lomo',     pp:20.0,pk:0.5,otros:12,c:'Fusión',     t:30},
-  {id:'DIS-31', n:'Lomo de Cerdo al Curry Cremoso', p:'Cerdo lomo',     pp:20.0,pk:0.5,otros:11,c:'Fusión',     t:35},
-  // BOWLS & FIT
-  {id:'DIS-32', n:'Bowl Acevichado de Pollo',       p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:12,c:'Bowls & Fit',t:30},
-  {id:'DIS-33', n:'Bowl Criollo Pollo + Camote',    p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:11,c:'Bowls & Fit',t:30},
-  {id:'DIS-34', n:'Ensalada de Atún Fit',           p:'Atún en lata',   pp:0,   pk:0,  otros:17,c:'Bowls & Fit',t:25},
-  {id:'DIS-35', n:'Ensalada César con Pollo',       p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:10,c:'Bowls & Fit',t:25},
-  {id:'DIS-37', n:'Milanesa de Pollo + Quinua',     p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:11,c:'Bowls & Fit',t:40},
-  {id:'DIS-40', n:'Piña Chicken Bowl',              p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:12,c:'Bowls & Fit',t:25},
-  {id:'DIS-41', n:'Teriyaki Bowl',                  p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:11,c:'Bowls & Fit',t:30},
+  // Criollo
+  {id:'DIS-01a',n:'Estofado de Pollo',                 p:'Pollo presa',    pp:4.0, pk:0.6,otros:11,c:'Criollo',    t:50},
+  {id:'DIS-01b',n:'Estofado de Res',                   p:'Res cadera',     pp:22.0,pk:0.5,otros:11,c:'Criollo',    t:55},
+  {id:'DIS-02a',n:'Adobo de Chancho',                  p:'Cerdo bondiola', pp:18.0,pk:0.6,otros:12,c:'Criollo',    t:45},
+  {id:'DIS-03a',n:'Locro con Pollo a la Plancha',      p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:14,c:'Criollo',    t:40},
+  {id:'DIS-03b',n:'Locro con Bistec',                  p:'Res cadera',     pp:22.0,pk:0.3,otros:14,c:'Criollo',    t:40},
+  {id:'DIS-04', n:'Olluquito con Carne',               p:'Res cadera',     pp:22.0,pk:0.3,otros:9, c:'Criollo',    t:35},
+  {id:'DIS-05', n:'Ají de Gallina',                    p:'Pollo pechuga',  pp:4.5, pk:1.0,otros:15,c:'Criollo',    t:55},
+  {id:'DIS-07', n:'Picante de Carne Criollo',          p:'Res cadera',     pp:22.0,pk:0.4,otros:10,c:'Criollo',    t:65},
+  {id:'DIS-08', n:'Ceviche de Pollo',                  p:'Pollo presa',    pp:4.0, pk:0.4,otros:10,c:'Criollo',    t:30},
+  {id:'DIS-09', n:'Estofado Verde de Pollo',           p:'Pollo presa',    pp:4.0, pk:0.6,otros:10,c:'Criollo',    t:50},
+  {id:'DIS-10', n:'Pollo a la Mostaza',                p:'Pollo presa',    pp:4.0, pk:0.6,otros:9, c:'Criollo',    t:40},
+  {id:'DIS-11', n:'Seco de Res',                       p:'Res cadera',     pp:22.0,pk:0.4,otros:12,c:'Criollo',    t:60},
+  // Menestras
+  {id:'DIS-12', n:'Lentejas Guisadas con Pollo',       p:'Pollo presa',    pp:4.0, pk:0.5,otros:9, c:'Menestras',  t:45},
+  // Arroces
+  {id:'DIS-13', n:'Arroz con Pollo',                   p:'Pollo presa',    pp:4.0, pk:0.6,otros:9, c:'Arroces',    t:45},
+  {id:'DIS-14', n:'Arroz Chaufa Carnívoro',            p:'Pollo+Res+Cerdo',pp:10.0,pk:0.6,otros:10,c:'Arroces',    t:25},
+  {id:'DIS-15', n:'Arroz con Carne Norteña',           p:'Res cadera',     pp:22.0,pk:0.4,otros:11,c:'Arroces',    t:45},
+  {id:'DIS-16', n:'Seco de Pollo Norteño',             p:'Pollo presa',    pp:4.0, pk:0.8,otros:14,c:'Arroces',    t:50},
+  {id:'DIS-17a',n:'Lomo Saltado de Res',               p:'Res lomo fino',  pp:32.0,pk:0.5,otros:12,c:'Arroces',    t:40},
+  {id:'DIS-17b',n:'Pollo Saltado',                     p:'Pollo pechuga',  pp:4.5, pk:0.5,otros:12,c:'Arroces',    t:40},
+  {id:'DIS-18', n:'Arroz a la Jardinera',              p:'Pollo presa',    pp:4.0, pk:0.5,otros:9, c:'Arroces',    t:40},
+  {id:'DIS-36', n:'Arroz Tapado',                      p:'Res molida',     pp:18.0,pk:0.4,otros:10,c:'Arroces',    t:35},
+  // Pastas
+  {id:'DIS-19a',n:'Tallarines Rojos con Pollo',        p:'Pollo presa',    pp:4.0, pk:0.6,otros:10,c:'Pastas',     t:35},
+  {id:'DIS-19b',n:'Tallarines Rojos con Carne Molida', p:'Res molida',     pp:18.0,pk:0.4,otros:10,c:'Pastas',     t:35},
+  {id:'DIS-20a',n:'Tallarines Verdes + Bistec',        p:'Res cadera',     pp:22.0,pk:0.5,otros:14,c:'Pastas',     t:35},
+  {id:'DIS-20b',n:'Tallarines Verdes + Milanesa',      p:'Pollo milanesa', pp:6.5, pk:0.5,otros:14,c:'Pastas',     t:35},
+  {id:'DIS-21', n:'Fettuccini Huancaína + Lomo',       p:'Res lomo fino',  pp:32.0,pk:0.4,otros:14,c:'Pastas',     t:35},
+  {id:'DIS-22', n:'Pasta en Salsa Blanca',             p:'Pollo milanesa', pp:6.5, pk:0.4,otros:10,c:'Pastas',     t:30},
+  {id:'DIS-24', n:'Risotto con Pollo',                 p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:13,c:'Pastas',     t:60},
+  // Al Horno
+  {id:'DIS-25', n:'Pollo al Horno Criollo + Ens. Rusa',p:'Pollo presa',   pp:4.0, pk:0.8,otros:12,c:'Al Horno',   t:90},
+  {id:'DIS-26', n:'Pollo al Horno + Puré',             p:'Pollo presa',    pp:4.0, pk:0.8,otros:11,c:'Al Horno',   t:50},
+  {id:'DIS-27', n:'Pollo BBQ con Papas',               p:'Pollo presa',    pp:4.0, pk:0.7,otros:11,c:'Al Horno',   t:50},
+  {id:'DIS-39', n:'Pollo con Champiñones a la Crema',  p:'Pollo presa',    pp:4.0, pk:0.7,otros:13,c:'Al Horno',   t:35},
+  // Fusión
+  {id:'DIS-28', n:'Cerdo Agridulce Crocante',          p:'Cerdo bondiola', pp:18.0,pk:0.5,otros:12,c:'Fusión',     t:40},
+  {id:'DIS-29', n:'Chijaukay',                         p:'Pollo pechuga',  pp:4.5, pk:0.6,otros:10,c:'Fusión',     t:20},
+  {id:'DIS-30', n:'Tonkatsu con Ensalada Nikkei',      p:'Cerdo lomo',     pp:20.0,pk:0.5,otros:12,c:'Fusión',     t:30},
+  {id:'DIS-31', n:'Lomo de Cerdo al Curry Cremoso',    p:'Cerdo lomo',     pp:20.0,pk:0.5,otros:11,c:'Fusión',     t:35},
+  // Bowls & Fit
+  {id:'DIS-32', n:'Bowl Acevichado de Pollo',          p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:12,c:'Bowls & Fit',t:30},
+  {id:'DIS-33', n:'Bowl Criollo Pollo + Camote',       p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:11,c:'Bowls & Fit',t:30},
+  {id:'DIS-34', n:'Ensalada de Atún Fit',              p:'Atún en lata',   pp:0,   pk:0,  otros:17,c:'Bowls & Fit',t:25},
+  {id:'DIS-35', n:'Ensalada César con Pollo',          p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:10,c:'Bowls & Fit',t:25},
+  {id:'DIS-37', n:'Milanesa de Pollo + Quinua',        p:'Pollo milanesa', pp:6.5, pk:0.4,otros:11,c:'Bowls & Fit',t:40},
+  {id:'DIS-40', n:'Piña Chicken Bowl',                 p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:12,c:'Bowls & Fit',t:25},
+  {id:'DIS-41', n:'Teriyaki Bowl',                     p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:11,c:'Bowls & Fit',t:30},
 ];
 const MENUS_NM = {
   mesa:'La Mesa de Siempre', express:'Cocina Express', nortena:'Cocina Norteña',
@@ -862,7 +835,7 @@ const COMPRAS_PLATO = {
   "Spaghetti Ragú Bolognese":  [["Res molida",0.4,"kg"],["Pasta spaghetti",0.36,"kg"],["Tomate",0.4,"kg"],["Cebolla",0.2,"kg"]],
   "Pasta en Salsa Blanca":     [["Pollo pechuga",0.4,"kg"],["Pasta spaghetti",0.36,"kg"],["Leche evaporada",2,"lata"]],
   "Risotto con Pollo":          [["Pollo pechuga",0.4,"kg"],["Arroz arbóreo",0.3,"kg"],["Leche evaporada",2,"lata"],["Cebolla",0.16,"kg"]],
-  "Arroz Chaufa Carnívoro":    [["Mixta",0.6,"kg"],["Arroz",0.3,"kg"],["Cebolla",0.16,"kg"]],
+  "Arroz Chaufa Carnívoro":    [["Pollo presa",0.25,"kg"],["Res cadera",0.2,"kg"],["Cerdo bondiola",0.15,"kg"],["Arroz",0.3,"kg"],["Cebolla",0.16,"kg"]],
   "Cerdo Agridulce Crocante":  [["Cerdo lomo",0.5,"kg"],["Cebolla",0.16,"kg"]],
   "Chijaukay":                  [["Pollo entero",0.7,"kg"],["Cebolla",0.16,"kg"]],
   "Tonkatsu":                   [["Cerdo lomo",0.5,"kg"],["Cebolla",0.16,"kg"]],
@@ -931,7 +904,7 @@ function renderDashboard() {
       <td>${MENUS_EMO[p.menu]||''} ${MENUS_NM[p.menu]||p.menu||'—'}</td>
       <td>${p.n_dias||5}d × ${p.porciones||4}p</td>
       <td style="font-weight:600;">S/. ${p.monto||0}</td>
-      <td><span class="estado-pill ep-${(p.estado||'pendiente').replace(/ /g,'_')}" onclick="event.stopPropagation();cambiarEstadoRapido('${p.id}')">${(p.estado||'pendiente').replace(/_/g,' ')}</span>${p.observacion?'<span title="'+p.observacion+'" style="margin-left:4px;font-size:11px;cursor:help;">📝</span>':''}</td>
+      <td><span class="estado-pill ep-${(p.estado||'pendiente').replace(/ /g,'_')}" onclick="event.stopPropagation();cambiarEstadoRapido('${p.id}')">${(p.estado||'pendiente').replace(/_/g,' ')}</span>${p.observacion?'<span title="'+p.observacion+'" style="margin-left:4px;font-size:11px;">📝</span>':''}</td>
     </tr>`
   ).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--g);padding:24px;">Sin pedidos aún</td></tr>';
 }
@@ -972,7 +945,7 @@ function renderPedidos() {
         <td style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.platos_elegidos||'—'}</td>
         <td style="white-space:nowrap;">${p.metodo_pago==='yape'?'💜 Yape':p.metodo_pago==='plin'?'💚 Plin':'—'}</td>
         <td style="font-weight:600;">S/. ${p.monto||0}</td>
-        <td><span class="estado-pill ep-${(p.estado||'pendiente').replace(/ /g,'_')}" onclick="event.stopPropagation();cambiarEstadoRapido('${p.id}')">${(p.estado||'pendiente').replace(/_/g,' ')}</span>${p.observacion?'<span title="'+p.observacion+'" style="margin-left:4px;font-size:11px;cursor:help;">📝</span>':''}</td>
+        <td><span class="estado-pill ep-${(p.estado||'pendiente').replace(/ /g,'_')}" onclick="event.stopPropagation();cambiarEstadoRapido('${p.id}')">${(p.estado||'pendiente').replace(/_/g,' ')}</span>${p.observacion?'<span title="'+p.observacion+'" style="margin-left:4px;font-size:11px;">📝</span>':''}</td>
         <td onclick="event.stopPropagation();">
           <button class="btn btn-out btn-sm" onclick="verPedido('${p.id}')">Ver</button><button class="btn-pdf btn-sm" onclick="event.stopPropagation();generarPDF('${p.id}')" title="Generar cartillas PDF">📄</button>
         </td>
@@ -989,7 +962,6 @@ function verPedido(id) {
   document.getElementById('md-body').innerHTML = `
     <div class="md-row"><span>Fecha</span><span>${p.fecha}</span></div>
     <div class="md-row"><span>Cliente</span><span>${p.nombre}</span></div>
-    ${p.dni?`<div class="md-row"><span>DNI</span><span>${p.dni}</span></div>`:''}
     <div class="md-row"><span>WhatsApp</span><span><a href="https://wa.me/51${(p.telefono||'').replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--v2);">+51 ${p.telefono}</a></span></div>
     <div class="md-row"><span>Email</span><span>${p.email}</span></div>
     <div class="md-row"><span>Menú</span><span>${MENUS_EMO[p.menu]||''} ${p.menu_nombre||MENUS_NM[p.menu]}</span></div>
@@ -999,6 +971,7 @@ function verPedido(id) {
     <div class="md-row"><span>Monto</span><span style="font-weight:700;color:var(--v);">S/. ${p.monto}</span></div>
     <div class="md-row"><span>Dirección</span><span>${p.direccion}, ${p.distrito}</span></div>
     ${p.notas?`<div class="md-row"><span>Notas cliente</span><span style="font-size:11px;">${p.notas}</span></div>`:''}
+    ${p.observacion?`<div class="md-row" style="background:#FFFDE7;border-radius:6px;"><span style="color:#856404;">📝 Observación</span><span style="font-size:11px;color:#856404;font-weight:600;">${p.observacion}</span></div>`:''}
     <label style="font-size:11px;font-weight:600;color:var(--g);text-transform:uppercase;letter-spacing:.05em;display:block;margin-top:14px;margin-bottom:4px;">Actualizar estado</label>
     <select class="estado-select" id="estado-sel" onchange="actualizarEstado()">
       <option value="pendiente" ${p.estado==='pendiente'?'selected':''}>⏳ Pendiente</option>
@@ -1008,18 +981,19 @@ function verPedido(id) {
       <option value="entregado" ${p.estado==='entregado'?'selected':''}>✅ Entregado</option>
       <option value="cancelado" ${p.estado==='cancelado'?'selected':''}>❌ Cancelado</option>
     </select>
-    <label style="font-size:11px;font-weight:600;color:var(--g);text-transform:uppercase;letter-spacing:.05em;display:block;margin-top:14px;margin-bottom:4px;">📝 Observaciones internas</label>
-    <textarea id="obs-input" rows="4"
-      placeholder="Ej: cliente prefiere sin aceitunas · no toca timbre · cambio de dirección confirmado · revisar pago..."
+    <label style="font-size:11px;font-weight:600;color:var(--g);text-transform:uppercase;letter-spacing:.05em;display:block;margin-top:14px;margin-bottom:4px;">📝 Observaciones del pedido</label>
+    <textarea id="obs-input" rows="4" placeholder="Cambios en el menú · preferencias especiales · notas de entrega · cualquier detalle relevante..."
       oninput="guardarObservacion()"
-      style="width:100%;padding:10px 12px;border:1.5px solid var(--bd);border-radius:10px;
-        font-family:'Poppins',sans-serif;font-size:12px;line-height:1.5;
-        resize:vertical;outline:none;box-sizing:border-box;min-height:90px;">${p.observacion||''}</textarea>
-    <div style="display:flex;gap:8px;margin-top:10px;">
+      style="width:100%;padding:10px 12px;border:1.5px solid var(--bd);border-radius:10px;font-family:'Poppins',sans-serif;font-size:12px;line-height:1.5;resize:vertical;outline:none;box-sizing:border-box;min-height:90px;">${p.observacion||''}</textarea>
+    <div style="margin-top:10px;display:flex;gap:8px;">
       <a href="https://wa.me/51${(p.telefono||'').replace(/[^0-9]/g,'')}" target="_blank" class="btn btn-v" style="flex:1;text-align:center;text-decoration:none;padding:8px;">💬 WhatsApp</a>
     </div>
     <button class="btn-pdf btn-pdf-lg" onclick="cerrarModal();generarPDF('${p.id}')">📄 Descargar cartillas de recetas</button>
-    <button onclick="eliminarPedido('${p.id}')" style="width:100%;margin-top:8px;padding:9px;border-radius:10px;border:1.5px solid #E53935;background:#FFF;color:#E53935;font-weight:600;font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;">🗑 Eliminar pedido</button>`;
+    <button onclick="eliminarPedido('${p.id}')"
+      style="width:100%;margin-top:8px;padding:9px;border-radius:10px;border:1.5px solid #E53935;
+        background:#FFF;color:#E53935;font-weight:600;font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;">
+      🗑 Eliminar pedido
+    </button>`;
   document.getElementById('modal-overlay').classList.add('show');
 }
 
@@ -1061,31 +1035,9 @@ function eliminarPedido(id){
   renderAll();
   showToast('🗑 Pedido eliminado');
 }
-async function eliminarPedidoEnSupabase(id){
-  try{
-    await fetch(`https://dnpkobwulscmowkefgeg.supabase.co/rest/v1/pedidos?id=eq.${encodeURIComponent(id)}`,{
-      method:'DELETE',
-      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRucGtvYnd1bHNjbW93a2VmZ2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzQ4MDYsImV4cCI6MjA5MDcxMDgwNn0.Idj6NSUFYQg44BnLRJa23EXSHZkJG5vz6tfnfCGEIt8','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRucGtvYnd1bHNjbW93a2VmZ2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzQ4MDYsImV4cCI6MjA5MDcxMDgwNn0.Idj6NSUFYQg44BnLRJa23EXSHZkJG5vz6tfnfCGEIt8','Prefer':'return=minimal'}
-    });
-  }catch(e){}
-}
-function eliminarPedido(id){
-  if(!confirm('¿Eliminar pedido '+id+'? No se puede deshacer.')) return;
-  const arr=getPedidos().filter(p=>p.id!==id);
-  localStorage.setItem('dispensia_pedidos',JSON.stringify(arr));
-  eliminarPedidoEnSupabase(id);
-  cerrarModal(); renderAll(); showToast('🗑 Pedido eliminado');
-}
-function guardarObservacion(){
-  if(!pedidoActivo) return;
-  pedidoActivo.observacion = document.getElementById('obs-input')?.value||'';
-  savePedido(pedidoActivo);
-  fetch(`https://dnpkobwulscmowkefgeg.supabase.co/rest/v1/pedidos?id=eq.${encodeURIComponent(pedidoActivo.id)}`,{
-    method:'PATCH',
-    headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRucGtvYnd1bHNjbW93a2VmZ2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzQ4MDYsImV4cCI6MjA5MDcxMDgwNn0.Idj6NSUFYQg44BnLRJa23EXSHZkJG5vz6tfnfCGEIt8','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRucGtvYnd1bHNjbW93a2VmZ2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzQ4MDYsImV4cCI6MjA5MDcxMDgwNn0.Idj6NSUFYQg44BnLRJa23EXSHZkJG5vz6tfnfCGEIt8','Prefer':'return=minimal'},
-    body:JSON.stringify({observacion:pedidoActivo.observacion})
-  }).catch(()=>{});
-}
+async function eliminarPedidoEnSupabase(id){try{await fetch(`https://dnpkobwulscmowkefgeg.supabase.co/rest/v1/pedidos?id=eq.${encodeURIComponent(id)}`,{method:'DELETE',headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRucGtvYnd1bHNjbW93a2VmZ2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzQ4MDYsImV4cCI6MjA5MDcxMDgwNn0.Idj6NSUFYQg44BnLRJa23EXSHZkJG5vz6tfnfCGEIt8','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRucGtvYnd1bHNjbW93a2VmZ2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzQ4MDYsImV4cCI6MjA5MDcxMDgwNn0.Idj6NSUFYQg44BnLRJa23EXSHZkJG5vz6tfnfCGEIt8','Prefer':'return=minimal'}});}catch(e){}}
+function eliminarPedido(id){if(!confirm('¿Eliminar pedido '+id+'?')) return;const arr=getPedidos().filter(p=>p.id!==id);localStorage.setItem('dispensia_pedidos',JSON.stringify(arr));eliminarPedidoEnSupabase(id);cerrarModal();renderAll();showToast('🗑 Pedido eliminado');}
+function guardarObservacion(){if(!pedidoActivo) return;pedidoActivo.observacion=document.getElementById('obs-input')?.value||'';savePedido(pedidoActivo);fetch(`https://dnpkobwulscmowkefgeg.supabase.co/rest/v1/pedidos?id=eq.${encodeURIComponent(pedidoActivo.id)}`,{method:'PATCH',headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRucGtvYnd1bHNjbW93a2VmZ2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzQ4MDYsImV4cCI6MjA5MDcxMDgwNn0.Idj6NSUFYQg44BnLRJa23EXSHZkJG5vz6tfnfCGEIt8','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRucGtvYnd1bHNjbW93a2VmZ2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzQ4MDYsImV4cCI6MjA5MDcxMDgwNn0.Idj6NSUFYQg44BnLRJa23EXSHZkJG5vz6tfnfCGEIt8','Prefer':'return=minimal'},body:JSON.stringify({observacion:pedidoActivo.observacion})}).catch(()=>{});}
 function cerrarModal() { document.getElementById('modal-overlay').classList.remove('show'); }
 
 // ── CALCULADORA ──
@@ -1811,7 +1763,7 @@ async function pushAllConfig() {
     pushConfigToSupabase('config',            cfg),
     pushConfigToSupabase('platos_off',        platos),
     pushConfigToSupabase('fijos_semanales',   fijos),
-    pushConfigToSupabase('precios_menus',     getPreciosMenus ? getPreciosMenus() : {}),
+    pushConfigToSupabase('precios_menus', getPreciosMenus()),
   ]);
 }
 
@@ -1992,63 +1944,11 @@ function toggleSidebar(){
 }
 
 
-// ══════════════════════════════════════════════════════════
-// EDITOR DE PRECIOS POR MENÚ
-// ══════════════════════════════════════════════════════════
-const PRECIOS_BASE_MENUS = {
-  mesa:        {3:{2:68,4:115,6:159},5:{2:92,4:149,6:199},7:{2:122,4:189,6:259}},
-  express:     {3:{2:62,4:105,6:145},5:{2:85,4:139,6:185},7:{2:115,4:179,6:245}},
-  nortena:     {3:{2:65,4:109,6:149},5:{2:88,4:145,6:195},7:{2:119,4:185,6:255}},
-  criolla:     {3:{2:65,4:109,6:149},5:{2:88,4:145,6:195},7:{2:118,4:185,6:255}},
-  fusion:      {3:{2:72,4:119,6:165},5:{2:95,4:169,6:229},7:{2:125,4:209,6:279}},
-  buena:       {3:{2:75,4:129,6:179},5:{2:99,4:179,6:239},7:{2:129,4:219,6:289}},
-  criollolima: {3:{2:68,4:115,6:159},5:{2:90,4:149,6:199},7:{2:120,4:189,6:259}},
-  fit:         {3:{2:60,4:99,6:135}, 5:{2:80,4:129,6:175},7:{2:109,4:169,6:229}},
-  custom:      {3:{2:65,4:109,6:149},5:{2:89,4:149,6:199},7:{2:119,4:189,6:259}},
-};
-function getPreciosMenus(){
-  try{ return JSON.parse(localStorage.getItem('dispensia_precios_menus')||'null')||JSON.parse(JSON.stringify(PRECIOS_BASE_MENUS)); }
-  catch(e){ return JSON.parse(JSON.stringify(PRECIOS_BASE_MENUS)); }
-}
-function renderPreciosMenus(){
-  const tbody=document.getElementById('precios-menus-tbody'); if(!tbody) return;
-  const precios=getPreciosMenus();
-  const combos=[{d:3,p:2},{d:3,p:4},{d:3,p:6},{d:5,p:2},{d:5,p:4},{d:5,p:6},{d:7,p:2},{d:7,p:4},{d:7,p:6}];
-  tbody.innerHTML=MENU_CATALOG.map((m,i)=>{
-    const pr=precios[m.key]||PRECIOS_BASE_MENUS[m.key]||{};
-    const bg=i%2===0?'#FAFAFA':'#FFF';
-    const cells=combos.map(({d,p})=>{
-      const val=(pr[d]||{})[p]||''; const hot=d===5&&p===4;
-      return `<td style="padding:3px;text-align:center;background:${hot?'#E8F5EE':bg};">
-        <div style="display:flex;align-items:center;justify-content:center;gap:1px;">
-          <span style="font-size:9px;color:#BBB;">S/.</span>
-          <input type="number" min="1" max="999" value="${val}" data-menu="${m.key}" data-d="${d}" data-p="${p}"
-            onchange="onPrecioChange(this)"
-            style="width:44px;padding:4px 2px;border:1.5px solid ${hot?'#A5D6A7':'var(--bd)'};border-radius:6px;
-              font-size:12px;font-weight:${hot?700:400};font-family:'Poppins',sans-serif;text-align:center;
-              color:${hot?'#0F5D2E':'#222'};background:${hot?'#F0F9F1':bg};outline:none;">
-        </div></td>`;
-    }).join('');
-    return `<tr style="border-bottom:1px solid var(--bd);">
-      <td style="padding:7px 12px;background:${bg};white-space:nowrap;"><span style="font-size:14px;">${m.emoji}</span> <span style="font-size:12px;font-weight:600;">${m.nombre}</span></td>
-      ${cells}</tr>`;
-  }).join('');
-}
-function onPrecioChange(inp){
-  const precios=getPreciosMenus();
-  const mk=inp.dataset.menu,d=parseInt(inp.dataset.d),p=parseInt(inp.dataset.p),v=parseInt(inp.value)||0;
-  if(!precios[mk]) precios[mk]={};
-  if(!precios[mk][d]) precios[mk][d]={};
-  precios[mk][d][p]=v;
-  localStorage.setItem('dispensia_precios_menus',JSON.stringify(precios));
-}
-async function guardarPreciosMenus(){
-  const precios=getPreciosMenus();
-  await pushConfigToSupabase('precios_menus',precios);
-  const msg=document.getElementById('precios-saved-msg');
-  if(msg){msg.style.display='block';msg.textContent='✅ Precios guardados';setTimeout(()=>msg.style.display='none',4000);}
-  showToast('✅ Precios actualizados en el landing');
-}
+const PRECIOS_BASE_MENUS={mesa:{3:{2:68,4:115,6:159},5:{2:92,4:149,6:199},7:{2:122,4:189,6:259}},express:{3:{2:62,4:105,6:145},5:{2:85,4:139,6:185},7:{2:115,4:179,6:245}},nortena:{3:{2:65,4:109,6:149},5:{2:88,4:145,6:195},7:{2:119,4:185,6:255}},criolla:{3:{2:65,4:109,6:149},5:{2:88,4:145,6:195},7:{2:118,4:185,6:255}},fusion:{3:{2:72,4:119,6:165},5:{2:95,4:169,6:229},7:{2:125,4:209,6:279}},buena:{3:{2:75,4:129,6:179},5:{2:99,4:179,6:239},7:{2:129,4:219,6:289}},criollolima:{3:{2:68,4:115,6:159},5:{2:90,4:149,6:199},7:{2:120,4:189,6:259}},fit:{3:{2:60,4:99,6:135},5:{2:80,4:129,6:175},7:{2:109,4:169,6:229}},custom:{3:{2:65,4:109,6:149},5:{2:89,4:149,6:199},7:{2:119,4:189,6:259}}};
+function getPreciosMenus(){try{return JSON.parse(localStorage.getItem('dispensia_precios_menus')||'null')||JSON.parse(JSON.stringify(PRECIOS_BASE_MENUS));}catch(e){return JSON.parse(JSON.stringify(PRECIOS_BASE_MENUS));}}
+function renderPreciosMenus(){const tbody=document.getElementById('precios-menus-tbody');if(!tbody)return;const precios=getPreciosMenus();const combos=[{d:3,p:2},{d:3,p:4},{d:3,p:6},{d:5,p:2},{d:5,p:4},{d:5,p:6},{d:7,p:2},{d:7,p:4},{d:7,p:6}];tbody.innerHTML=MENU_CATALOG.map((m,i)=>{const pr=precios[m.key]||PRECIOS_BASE_MENUS[m.key]||{};const bg=i%2===0?'#FAFAFA':'#FFF';const cells=combos.map(({d,p})=>{const val=(pr[d]||{})[p]||'';const hot=d===5&&p===4;return `<td style="padding:3px;text-align:center;background:${hot?'#E8F5EE':bg};"><div style="display:flex;align-items:center;justify-content:center;gap:1px;"><span style="font-size:9px;color:#BBB;">S/.</span><input type="number" min="1" max="999" value="${val}" data-menu="${m.key}" data-d="${d}" data-p="${p}" onchange="onPrecioChange(this)" style="width:44px;padding:4px 2px;border:1.5px solid ${hot?'#A5D6A7':'var(--bd)'};border-radius:6px;font-size:12px;font-weight:${hot?700:400};font-family:'Poppins',sans-serif;text-align:center;color:${hot?'#0F5D2E':'#222'};background:${hot?'#F0F9F1':bg};outline:none;"></div></td>`;}).join('');return `<tr style="border-bottom:1px solid var(--bd);"><td style="padding:7px 12px;background:${bg};white-space:nowrap;"><span style="font-size:14px;">${m.emoji}</span> <span style="font-size:12px;font-weight:600;">${m.nombre}</span></td>${cells}</tr>`;}).join('');}
+function onPrecioChange(inp){const precios=getPreciosMenus();const mk=inp.dataset.menu,d=parseInt(inp.dataset.d),p=parseInt(inp.dataset.p),v=parseInt(inp.value)||0;if(!precios[mk])precios[mk]={};if(!precios[mk][d])precios[mk][d]={};precios[mk][d][p]=v;localStorage.setItem('dispensia_precios_menus',JSON.stringify(precios));}
+async function guardarPreciosMenus(){const precios=getPreciosMenus();await pushConfigToSupabase('precios_menus',precios);const msg=document.getElementById('precios-saved-msg');if(msg){msg.style.display='block';msg.textContent='✅ Precios guardados en Supabase';setTimeout(()=>msg.style.display='none',4000);}showToast('✅ Precios actualizados en el landing');}
 
 function renderAll(){renderDashboard();renderPedidos();}
 
@@ -2818,7 +2718,203 @@ const RECETAS_DB = {
       {t:"Armar el bowl",d:"Arroz como base. Pollo glaseado al centro. Piña, palta y tomate alrededor en secciones. El contraste caliente-fresco es lo que hace a este bowl especial."},
       {t:"Servir",d:"Inmediatamente. El glaseado del pollo actúa como la salsa del bowl — no necesita aderezo adicional."}
     ]
+  },,
+  "Estofado de Pollo":{
+    tiempo:"50 min",cat:"Criollo",emoji:"🥘",
+    desc:"Guiso criollo tradicional con presas de pollo, papa, zanahoria, aceitunas y vino tinto en base de ají panca.",
+    color:"#1A6B35",
+    utensilios:"Olla mediana con tapa, cuchillo, tabla de cortar, cuchara de palo",
+    despensa:"Sal, pimienta, comino, aceite vegetal, agua o caldo",
+    ingredientes:[
+      {g:"Proteína",items:[["Pollo en presas",500,"g","sellado al vacío con sal/pimienta/comino"]]},
+      {g:"Aderezo — frasquito",items:[["Ají panca pasta",40,"g",""],["Vino tinto seco",100,"ml",""]]},
+      {g:"Verduras — bolsa kraft",items:[["Zanahoria",1,"un","pelada en rodajas"],["Aceitunas verdes",30,"g","ziplock"]]},
+      {g:"Del cliente",items:[["Papa blanca",3,"un","entera cruda"],["Cebolla blanca",1,"un",""]]}
+    ],
+    pasos:[
+      {t:"Sellar el pollo",d:"Aceite en olla a fuego medio-alto. Sellar las presas de pollo por todos lados hasta doradas. Retirar y reservar."},
+      {t:"El aderezo",d:"En la misma olla sofreír la cebolla picada 4 min. Agregar el ají panca del frasquito y cocinar 3 min más removiendo."},
+      {t:"Construir el guiso",d:"Regresar el pollo. Verter el vino tinto del frasquito. Evaporar 2 min. Agregar papa troceada y zanahoria."},
+      {t:"Cocción",d:"Cubrir con agua. Tapar y cocinar 30 min a fuego bajo hasta que el pollo y la papa estén muy tiernos."},
+      {t:"Final",d:"Agregar aceitunas los últimos 5 min. Rectificar sal. Servir con arroz blanco y el caldo del guiso."}
+    ]
   },
+  "Estofado de Res":{
+    tiempo:"55 min",cat:"Criollo",emoji:"🥩",
+    desc:"Res cadera en cubos guisada lentamente con papa, zanahoria y vino tinto. Más contundente que el de pollo.",
+    color:"#8B2635",
+    utensilios:"Olla mediana con tapa, cuchillo, tabla de cortar",
+    despensa:"Sal, pimienta, comino, aceite vegetal, agua",
+    ingredientes:[
+      {g:"Proteína",items:[["Res cadera en cubos",400,"g","sellada al vacío"]]},
+      {g:"Aderezo — frasquito",items:[["Ají panca pasta",40,"g",""],["Vino tinto seco",100,"ml",""]]},
+      {g:"Verduras — bolsa kraft",items:[["Zanahoria",1,"un","pelada en rodajas"],["Aceitunas verdes",30,"g","ziplock"]]},
+      {g:"Del cliente",items:[["Papa blanca",3,"un","entera cruda"],["Cebolla blanca",1,"un",""]]}
+    ],
+    pasos:[
+      {t:"Sellar la res",d:"Aceite MUY caliente en olla. Sazonar res con sal, pimienta y comino. Sellar por todos lados hasta caramelizada. Reservar."},
+      {t:"El aderezo",d:"Sofreír cebolla picada 4 min en la misma olla. Agregar ají panca del frasquito y cocinar 3 min."},
+      {t:"Construir el guiso",d:"Regresar la res. Verter el vino tinto raspando el fondo. Agregar papa troceada y zanahoria."},
+      {t:"Cocción lenta",d:"Cubrir con agua. Tapar y cocinar 35-40 min a fuego bajo. La res debe quedar muy tierna."},
+      {t:"Final",d:"Agregar aceitunas los últimos 5 min. Rectificar sal. Sirve con arroz — el caldo es la salsa."}
+    ]
+  },
+  "Adobo de Chancho":{
+    tiempo:"45 min",cat:"Criollo",emoji:"🍖",
+    desc:"Cerdo bondiola guisado en chicha de jora con ají panca y ají amarillo. Sin marinado: la salsa va directo a la olla.",
+    color:"#7D3C0E",
+    utensilios:"Olla mediana o olla a presión, cuchillo, tabla",
+    despensa:"Sal, pimienta, comino, orégano, aceite vegetal, agua",
+    ingredientes:[
+      {g:"Proteína",items:[["Cerdo bondiola en presas",500,"g","sellado al vacío con sal/pimienta"]]},
+      {g:"Salsa — frasquito",items:[["Chicha de jora",200,"ml",""],["Ají panca pasta",60,"g",""],["Ají amarillo pasta",40,"g",""]]},
+      {g:"Del cliente",items:[["Cebolla blanca",1,"un",""],["Camote",2,"un","entero crudo"],["Laurel",2,"hojas",""]]}
+    ],
+    pasos:[
+      {t:"Sellar el cerdo",d:"Aceite a fuego alto. Sellar las presas de cerdo por todos lados hasta muy doradas. Reservar."},
+      {t:"El aderezo",d:"Sofreír cebolla picada 4 min. Agregar ají panca + ají amarillo del frasquito. Cocinar 5 min — debe oler intenso."},
+      {t:"La chicha",d:"Incorporar el cerdo. Verter la chicha de jora del frasquito. Agregar laurel y orégano. El cerdo debe quedar casi cubierto."},
+      {t:"Cocción",d:"Tapar y cocinar 35-40 min a fuego bajo (o 20 min en olla a presión). El cerdo debe deshacerse con el tenedor."},
+      {t:"El camote",d:"Sancochar el camote aparte 20 min. Servir con el cerdo, el caldo del adobo y arroz blanco."}
+    ]
+  },
+  "Locro con Pollo a la Plancha":{
+    tiempo:"40 min",cat:"Criollo",emoji:"🥗",
+    desc:"Guiso cremoso de zapallo macre con leche evaporada y queso, acompañado de pollo pechuga dorado a la plancha.",
+    color:"#1E8449",
+    utensilios:"Olla mediana, sartén o plancha, cuchillo, tabla",
+    despensa:"Sal, pimienta, aceite vegetal, agua",
+    ingredientes:[
+      {g:"Proteína",items:[["Pollo pechuga",300,"g","sellada al vacío, sazonada"]]},
+      {g:"El locro — frasquito",items:[["Ají amarillo pasta",40,"g",""],["Leche evaporada",200,"ml",""],["Queso fresco",80,"g","ziplock"]]},
+      {g:"Verduras — bolsa kraft",items:[["Zapallo macre en cubos",400,"g","3×3 cm"]]},
+      {g:"Del cliente",items:[["Papa blanca",2,"un","entera cruda"],["Choclo",1,"un","entero"],["Cebolla blanca",1,"un",""]]}
+    ],
+    pasos:[
+      {t:"El locro",d:"Sofreír cebolla y ajo picados. Agregar ají amarillo del frasquito 2 min. Incorporar zapallo y choclo desgranado. Cubrir con agua y cocinar 15 min hasta muy tierno."},
+      {t:"La crema",d:"Agregar leche evaporada y queso fresco desmenuzado. Cocinar 5 min a fuego bajo hasta espesar. Rectificar sal. Agregar papa sancochada en cubos."},
+      {t:"El pollo",d:"Sartén o plancha a fuego alto con aceite. Cocinar la pechuga 5-6 min por lado hasta dorada. Reposar 2 min y cortar en tiras."},
+      {t:"Servir",d:"Locro cremoso en el plato con el pollo encima en tiras. El contraste crema-plancha es la clave del plato."}
+    ]
+  },
+  "Locro con Bistec":{
+    tiempo:"40 min",cat:"Criollo",emoji:"🥗",
+    desc:"Guiso cremoso de zapallo macre con leche evaporada y queso, acompañado de bistec de res sellado a la plancha.",
+    color:"#922B21",
+    utensilios:"Olla mediana, sartén, cuchillo, tabla",
+    despensa:"Sal, pimienta, aceite vegetal, agua",
+    ingredientes:[
+      {g:"Proteína",items:[["Bistec de res cadera",250,"g","sellado al vacío, sazonado"]]},
+      {g:"El locro — frasquito",items:[["Ají amarillo pasta",40,"g",""],["Leche evaporada",200,"ml",""],["Queso fresco",80,"g","ziplock"]]},
+      {g:"Verduras — bolsa kraft",items:[["Zapallo macre en cubos",400,"g","3×3 cm"]]},
+      {g:"Del cliente",items:[["Papa blanca",2,"un","entera cruda"],["Choclo",1,"un","entero"],["Cebolla blanca",1,"un",""]]}
+    ],
+    pasos:[
+      {t:"El locro",d:"Sofreír cebolla y ajo 4 min. Agregar ají amarillo 2 min. Zapallo y choclo. Cubrir con agua y cocinar 15 min hasta muy tierno."},
+      {t:"La crema",d:"Leche evaporada y queso fresco. Cocinar 5 min. Rectificar sal. Agregar papa sancochada en cubos."},
+      {t:"El bistec",d:"Sartén MUY caliente con aceite. Sazonar con sal y pimienta. Sellar el bistec 2-3 min por lado — debe quedar jugoso por dentro."},
+      {t:"Servir",d:"Locro cremoso con el bistec al costado o encima en tiras. El locro de zapallo pide ese contraste de la carne sellada."}
+    ]
+  },
+  "Lomo Saltado de Res":{
+    tiempo:"40 min",cat:"Arroces",emoji:"🥩",
+    desc:"El clásico peruano. Lomo fino de res salteado a fuego muy alto con cebolla, tomate, sillao y vinagre.",
+    color:"#8B2635",
+    utensilios:"Wok o sartén grande de hierro, cuchillo, tabla — FUEGO MUY ALTO",
+    despensa:"Aceite vegetal, sal, pimienta — el fuego alto es imprescindible",
+    ingredientes:[
+      {g:"Proteína",items:[["Lomo fino de res en cubos",400,"g","sellado al vacío con sal/pimienta/sillao"]]},
+      {g:"Salsa — frasquito",items:[["Sillao",30,"ml",""],["Vinagre rojo",20,"ml",""],["Ají amarillo en tiras",15,"g",""]]},
+      {g:"Verduras — bolsa kraft",items:[["Cebolla roja en juliana gruesa",1,"un",""],["Tomate en gajos",1,"un",""],["Culantro fresco",10,"g","bolsita seca"]]},
+      {g:"Del cliente",items:[["Papa blanca",3,"un","para freír"],["Arroz","c/n","","graneado"]]}
+    ],
+    pasos:[
+      {t:"FUEGO MÁXIMO",d:"Wok o sartén a fuego máximo hasta que humee. Sin esto el plato no sale bien — no hay alternativa."},
+      {t:"Sellar el lomo",d:"Chorrito de aceite en el wok humeante. Sellar el lomo en tandas pequeñas 30-40 seg por lado. Retirar y reservar."},
+      {t:"Las verduras",d:"Mismo wok: cebolla, tomate y ají amarillo. Saltear solo 15-20 seg — deben quedar al dente."},
+      {t:"La salsa",d:"Regresar el lomo. Verter sillao y vinagre del frasquito. Saltear todo 15 seg más."},
+      {t:"Servir",d:"Con arroz blanco graneado y papas fritas bien crocantes. El jugo del wok es la salsa — no dejarlo atrás."}
+    ]
+  },
+  "Pollo Saltado":{
+    tiempo:"40 min",cat:"Arroces",emoji:"🍗",
+    desc:"La versión accesible del lomo saltado. Pollo pechuga salteado a fuego muy alto con cebolla, tomate y sillao.",
+    color:"#B5651D",
+    utensilios:"Wok o sartén grande, cuchillo, tabla — FUEGO MUY ALTO",
+    despensa:"Aceite vegetal, sal, pimienta",
+    ingredientes:[
+      {g:"Proteína",items:[["Pollo pechuga en cubos",400,"g","sellada al vacío con sal/pimienta/sillao"]]},
+      {g:"Salsa — frasquito",items:[["Sillao",30,"ml",""],["Vinagre rojo",20,"ml",""],["Ají amarillo en tiras",15,"g",""]]},
+      {g:"Verduras — bolsa kraft",items:[["Cebolla roja en juliana gruesa",1,"un",""],["Tomate en gajos",1,"un",""],["Culantro fresco",10,"g","bolsita seca"]]},
+      {g:"Del cliente",items:[["Papa blanca",3,"un","para freír"],["Arroz","c/n","","graneado"]]}
+    ],
+    pasos:[
+      {t:"FUEGO MÁXIMO",d:"Wok o sartén a fuego máximo hasta humo visible. Innegociable para el sabor correcto."},
+      {t:"Sellar el pollo",d:"Aceite en el wok. Saltear el pollo en tandas 1-2 min por lado hasta dorado. Reservar."},
+      {t:"Las verduras",d:"Cebolla, tomate y ají amarillo al wok. Saltear 20 seg — al dente."},
+      {t:"La salsa",d:"Regresar el pollo. Sillao y vinagre del frasquito. Saltear 15 seg más."},
+      {t:"Servir",d:"Con arroz blanco y papas fritas. Igual de sabroso que el de res con un perfil más suave."}
+    ]
+  },
+  "Tallarines Rojos con Pollo":{
+    tiempo:"35 min",cat:"Pastas",emoji:"🍝",
+    desc:"Pasta criolla en salsa de tomate con vino tinto, hongos secos y presas de pollo doradas.",
+    color:"#C0392B",
+    utensilios:"Olla grande para pasta, sartén o olla mediana, colador, cuchillo",
+    despensa:"Sal, pimienta, comino, aceite vegetal, agua",
+    ingredientes:[
+      {g:"Proteína",items:[["Pollo en presas",400,"g","sellado al vacío"]]},
+      {g:"Salsa — frasquito",items:[["Pasta de tomate",40,"g",""],["Vino tinto seco",100,"ml",""],["Hongo seco",20,"g","ziplock"]]},
+      {g:"Del cliente",items:[["Spaghetti",300,"g",""],["Tomates frescos",4,"un","licuar"],["Cebolla",1,"un",""],["Ajo","al gusto","",""],["Laurel",1,"hoja",""]]}
+    ],
+    pasos:[
+      {t:"Dorar el pollo",d:"Sazonar con sal, pimienta y comino. Dorar bien en sartén con aceite por ambos lados. Reservar."},
+      {t:"El aderezo",d:"Sofreír cebolla y ajo 4 min. Agregar pasta de tomate y laurel del frasquito. Cocinar 3 min."},
+      {t:"La salsa",d:"Agregar vino tinto. Licuar tomates frescos e incorporar. Agregar hongos secos. Poner el pollo encima. Tapar y cocinar 25 min a fuego bajo."},
+      {t:"La pasta",d:"Cocinar el spaghetti en agua hirviendo con sal hasta al dente. Escurrir y mezclar con la salsa."},
+      {t:"Servir",d:"Con las presas de pollo encima. Queso parmesano rallado si tienes."}
+    ]
+  },
+  "Tallarines Rojos con Carne Molida":{
+    tiempo:"35 min",cat:"Pastas",emoji:"🍝",
+    desc:"Pasta con salsa criolla de carne molida, tomate fresco y vino tinto. Más económico, igual de sabroso — listo en 35 min.",
+    color:"#A93226",
+    utensilios:"Olla grande para pasta, sartén, colador, cuchillo",
+    despensa:"Sal, pimienta, comino, aceite vegetal, agua",
+    ingredientes:[
+      {g:"Proteína",items:[["Carne molida de res",300,"g","pre-sazonada sellada al vacío"]]},
+      {g:"Salsa — frasquito",items:[["Pasta de tomate",40,"g",""],["Vino tinto seco",100,"ml",""],["Hongo seco",20,"g","ziplock"]]},
+      {g:"Del cliente",items:[["Spaghetti",300,"g",""],["Tomates frescos",4,"un","licuar"],["Cebolla",1,"un",""],["Ajo","al gusto","",""],["Laurel",1,"hoja",""]]}
+    ],
+    pasos:[
+      {t:"El aderezo",d:"Sofreír cebolla y ajo picados 4 min con aceite. Agregar pasta de tomate 2 min más."},
+      {t:"La carne",d:"Incorporar la carne molida. Desmenuzar con cuchara de madera y cocinar 5-6 min hasta que cambie de color completamente."},
+      {t:"La salsa",d:"Verter el vino tinto. Licuar tomates frescos e incorporar. Agregar hongos secos y laurel. Cocinar 15 min a fuego bajo — la salsa espesa y concentra."},
+      {t:"La pasta",d:"Cocinar spaghetti en agua hirviendo con sal hasta al dente. Escurrir bien y mezclar con la salsa."},
+      {t:"Servir",d:"Con queso parmesano rallado. Esta versión tiene más cuerpo que la de pollo — ideal para días fríos."}
+    ]
+  },
+  "Tallarines Verdes + Milanesa":{
+    tiempo:"35 min",cat:"Pastas",emoji:"🍝",
+    desc:"Pasta al pesto criollo (albahaca, espinaca, leche evaporada, queso) con milanesa de pollo dorada y crocante.",
+    color:"#1E6B3C",
+    utensilios:"Olla grande para pasta, sartén, colador, licuadora o procesador, cuchillo",
+    despensa:"Sal, pimienta, aceite vegetal, agua — harina y huevo para apanar (los tienes en casa)",
+    ingredientes:[
+      {g:"Proteína",items:[["Pollo milanesa (pechuga aplastada, SIN apanar)",300,"g","sellada al vacío"]]},
+      {g:"El pesto — frasquito",items:[["Leche evaporada",150,"ml",""],["Queso parmesano",50,"g","ziplock"],["Pecanas",30,"g","ziplock"]]},
+      {g:"Hierbas frescas — bolsa kraft seca",items:[["Albahaca fresca",30,"g","NO lavar hasta usar"],["Espinaca fresca",30,"g",""]]},
+      {g:"Del cliente",items:[["Spaghetti o fettuccini",300,"g",""],["Harina",50,"g","para apanar"],["Huevos",1,"un","para apanar"]]}
+    ],
+    pasos:[
+      {t:"El pesto criollo",d:"Lavar albahaca y espinaca justo antes de usar. Licuar con leche evaporada + queso parmesano + pecanas + sal hasta obtener salsa verde cremosa. Reservar."},
+      {t:"La pasta",d:"Cocinar en agua hirviendo con sal hasta al dente. Escurrir reservando ½ taza del agua de cocción."},
+      {t:"La milanesa",d:"Pasar la pechuga por harina sazonada, luego por huevo batido. Dorar en sartén con aceite abundante 3-4 min por lado hasta crocante y dorada."},
+      {t:"Juntar",d:"En la olla de la pasta: pesto a fuego MUY bajo 2 min. Incorporar la pasta y mezclar bien. Si queda espeso, agregar el agua reservada."},
+      {t:"Servir",d:"Pasta verde cremosa con la milanesa encima o al costado. El pesto no debe hervir — solo tibiar."}
+    ]
+  }
+
   "Teriyaki Bowl":{
     tiempo:"30 min",cat:"Bowls & Fit",emoji:"🥕",
     desc:"Arroz blanco con pollo glaseado estilo teriyaki criollo (sillao, miel y ajo), zanahoria en juliana, pimiento, pepino y cebolla china. Limpio, sabroso y sin complicaciones.",
@@ -3075,6 +3171,7 @@ function buildPDFHTML(pedido, platos, factor, porciones) {
             <div class="section-ing">
               <div class="section-title">Ingredientes</div>
               <div class="porc-badge">Para ${etiquetaPorc}</div>
+              ${(r.utensilios||r.despensa)?`<div style="background:#F0F9F1;border-radius:7px;padding:8px 12px;margin-bottom:8px;font-size:10px;color:#1A5276;">${r.utensilios?'<p style=\"margin:2px 0\"><strong>🍳 Utensilios:</strong> '+r.utensilios+'</p>':''}${r.despensa?'<p style=\"margin:2px 0\"><strong>🧂 Despensa:</strong> '+r.despensa+'</p>':''}</div>`:''}
               ${ingHTML}
             </div>
             <div class="section-pasos">
