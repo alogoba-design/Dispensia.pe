@@ -683,6 +683,35 @@ tr:hover td{background:var(--vxl);}
 
     <!-- ══ PRECIOS ══ -->
     <div id="tab-precios" class="tab-panel">
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-hdr">
+          <h2>💰 Precios de venta por menú</h2>
+          <button class="btn btn-sm" onclick="guardarPreciosMenus()" style="background:var(--v);color:#fff;">💾 Guardar precios</button>
+        </div>
+        <div class="card-body">
+          <p style="font-size:12px;color:var(--g);margin-bottom:14px;">Edita directamente en las celdas. Los cambios se guardan en Supabase y el landing los aplica al instante. Celdas verdes = plan más vendido.</p>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+              <thead>
+                <tr style="background:#F5F5F5;">
+                  <th style="padding:8px 12px;text-align:left;font-weight:700;color:#555;border-bottom:2px solid var(--bd);">Menú</th>
+                  <th style="padding:6px;text-align:center;color:#C0392B;border-bottom:2px solid var(--bd);">3d·2p</th>
+                  <th style="padding:6px;text-align:center;color:#C0392B;border-bottom:2px solid var(--bd);">3d·4p</th>
+                  <th style="padding:6px;text-align:center;color:#C0392B;border-bottom:2px solid var(--bd);">3d·6p</th>
+                  <th style="padding:6px;text-align:center;color:#0F5D2E;border-bottom:2px solid var(--bd);">5d·2p</th>
+                  <th style="padding:6px;text-align:center;background:#E8F5EE;color:#0F5D2E;font-weight:700;border-bottom:2px solid var(--bd);">5d·4p ⭐</th>
+                  <th style="padding:6px;text-align:center;color:#0F5D2E;border-bottom:2px solid var(--bd);">5d·6p</th>
+                  <th style="padding:6px;text-align:center;color:#1565C0;border-bottom:2px solid var(--bd);">7d·2p</th>
+                  <th style="padding:6px;text-align:center;color:#1565C0;border-bottom:2px solid var(--bd);">7d·4p</th>
+                  <th style="padding:6px;text-align:center;color:#1565C0;border-bottom:2px solid var(--bd);">7d·6p</th>
+                </tr>
+              </thead>
+              <tbody id="precios-menus-tbody"></tbody>
+            </table>
+          </div>
+          <span id="precios-saved-msg" style="font-size:12px;color:var(--v);display:none;margin-top:10px;display:block;"></span>
+        </div>
+      </div>
       <div class="kpi-grid">
         <div class="kpi-card green"><div class="kpi-label">Break-even semanal</div><div class="kpi-val">14</div><div class="kpi-sub">cajas/sem (plan 4p×5días)</div></div>
         <div class="kpi-card"><div class="kpi-label">Margen bruto variable</div><div class="kpi-val">32%</div><div class="kpi-sub">precio - costo variable</div></div>
@@ -859,6 +888,7 @@ function goTab(id, el) {
   if(id==='semanal') renderSemanal();
   if(id==='calculadora') { renderMenuDist(); calcularCompras(); }
   if(id==='portafolio') renderPortafolio();
+  if(id==='precios') renderPreciosMenus();
   if(id==='menus_semana'){ renderMenusToggle(); renderDiasToggle(); renderPorcToggle(); renderPlatosActivos(); renderEditorFijos(); }
   if(id==='precios') renderPrecios();
 }
@@ -893,7 +923,7 @@ function renderDashboard() {
       <td>${MENUS_EMO[p.menu]||''} ${MENUS_NM[p.menu]||p.menu||'—'}</td>
       <td>${p.n_dias||5}d × ${p.porciones||4}p</td>
       <td style="font-weight:600;">S/. ${p.monto||0}</td>
-      <td><span class="estado-pill ep-${(p.estado||'pendiente').replace(/ /g,'_')}" onclick="event.stopPropagation();cambiarEstadoRapido('${p.id}')">${(p.estado||'pendiente').replace(/_/g,' ')}</span>${p.observacion?'<span title="'+p.observacion+'" style="margin-left:4px;font-size:11px;cursor:help;">📝</span>':''}</td>
+      <td><span class="estado-pill ep-${(p.estado||'pendiente').replace(/ /g,'_')}" onclick="event.stopPropagation();cambiarEstadoRapido('${p.id}')">${(p.estado||'pendiente').replace(/_/g,' ')}</span>${p.observacion?'<span title="'+p.observacion+'" style="margin-left:4px;font-size:11px;">📝</span>':''}</td>
     </tr>`
   ).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--g);padding:24px;">Sin pedidos aún</td></tr>';
 }
@@ -934,7 +964,7 @@ function renderPedidos() {
         <td style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.platos_elegidos||'—'}</td>
         <td style="white-space:nowrap;">${p.metodo_pago==='yape'?'💜 Yape':p.metodo_pago==='plin'?'💚 Plin':'—'}</td>
         <td style="font-weight:600;">S/. ${p.monto||0}</td>
-        <td><span class="estado-pill ep-${(p.estado||'pendiente').replace(/ /g,'_')}" onclick="event.stopPropagation();cambiarEstadoRapido('${p.id}')">${(p.estado||'pendiente').replace(/_/g,' ')}</span>${p.observacion?'<span title="'+p.observacion+'" style="margin-left:4px;font-size:11px;cursor:help;">📝</span>':''}</td>
+        <td><span class="estado-pill ep-${(p.estado||'pendiente').replace(/ /g,'_')}" onclick="event.stopPropagation();cambiarEstadoRapido('${p.id}')">${(p.estado||'pendiente').replace(/_/g,' ')}</span>${p.observacion?'<span title="'+p.observacion+'" style="margin-left:4px;font-size:11px;">📝</span>':''}</td>
         <td onclick="event.stopPropagation();">
           <button class="btn btn-out btn-sm" onclick="verPedido('${p.id}')">Ver</button><button class="btn-pdf btn-sm" onclick="event.stopPropagation();generarPDF('${p.id}')" title="Generar cartillas PDF">📄</button>
         </td>
@@ -963,23 +993,13 @@ function verPedido(id) {
     ${p.observacion?`<div class="md-row" style="background:#FFFDE7;"><span style="color:#856404;">📝 Observación</span><span style="font-size:11px;color:#856404;font-weight:600;">${p.observacion}</span></div>`:''}
     <label style="font-size:11px;font-weight:600;color:var(--g);text-transform:uppercase;letter-spacing:.05em;display:block;margin-top:14px;margin-bottom:4px;">Actualizar estado</label>
     <select class="estado-select" id="estado-sel" onchange="actualizarEstado()">
-      <option value="pendiente" ${p.estado==='pendiente'?'selected':''}>⏳ Pendiente</option>
-      <option value="pendiente_verificacion" ${p.estado==='pendiente_verificacion'?'selected':''}>🔍 Pendiente verificación de pago</option>
-      <option value="preparando" ${p.estado==='preparando'?'selected':''}>👨‍🍳 Preparando</option>
-      <option value="en_camino" ${p.estado==='en_camino'?'selected':''}>🚗 En camino</option>
-      <option value="entregado" ${p.estado==='entregado'?'selected':''}>✅ Entregado</option>
-      <option value="cancelado" ${p.estado==='cancelado'?'selected':''}>❌ Cancelado</option>
+      <option value="pendiente" ${p.estado==='pendiente'?'selected':''}>Pendiente</option>
+      <option value="pendiente_verificacion" ${p.estado==='pendiente_verificacion'?'selected':''}>Pendiente verificación de pago</option>
+      <option value="preparando" ${p.estado==='preparando'?'selected':''}>Preparando</option>
+      <option value="en_camino" ${p.estado==='en_camino'?'selected':''}>En camino</option>
+      <option value="entregado" ${p.estado==='entregado'?'selected':''}>Entregado ✓</option>
+      <option value="cancelado" ${p.estado==='cancelado'?'selected':''}>Cancelado</option>
     </select>
-    <label style="font-size:11px;font-weight:600;color:var(--g);text-transform:uppercase;
-      letter-spacing:.05em;display:block;margin-top:14px;margin-bottom:4px;">
-      📝 Observaciones
-    </label>
-    <textarea id="obs-input" rows="3"
-      placeholder="Ej: sin aceitunas · cambio dirección · esperando confirmación de pago..."
-      oninput="guardarObservacion()"
-      style="width:100%;padding:9px 12px;border:1.5px solid var(--bd);border-radius:10px;
-        font-family:'Poppins',sans-serif;font-size:12px;resize:vertical;outline:none;
-        box-sizing:border-box;">${p.observacion||''}</textarea>
     <div style="margin-top:10px;display:flex;gap:8px;">
       <a href="https://wa.me/51${(p.telefono||'').replace(/[^0-9]/g,'')}" target="_blank" class="btn btn-v" style="flex:1;text-align:center;text-decoration:none;padding:8px;">💬 WhatsApp</a>
     </div>
@@ -1004,7 +1024,7 @@ function actualizarEstado() {
 function cambiarEstadoRapido(id) {
   const p = getPedidos().find(x=>x.id===id);
   if(!p) return;
-  const estados = ['pendiente','pendiente_verificacion','preparando','en_camino','entregado','cancelado'];
+  const estados = ['pendiente','pendiente_verificacion','preparando','en_camino','entregado'];
   const idx = estados.indexOf(p.estado||'pendiente');
   p.estado = estados[(idx+1)%estados.length];
   savePedido(p);
@@ -1030,16 +1050,14 @@ function eliminarPedido(id){
   renderAll();
   showToast('🗑 Pedido eliminado');
 }
-function guardarObservacion() {
+function guardarObservacion(){
   if(!pedidoActivo) return;
-  const obs = document.getElementById('obs-input')?.value || '';
-  pedidoActivo.observacion = obs;
+  pedidoActivo.observacion = document.getElementById('obs-input')?.value||'';
   savePedido(pedidoActivo);
-  fetch(`${SB_URL}/rest/v1/pedidos?id=eq.${encodeURIComponent(pedidoActivo.id)}`, {
+  fetch(`${SB_URL}/rest/v1/pedidos?id=eq.${encodeURIComponent(pedidoActivo.id)}`,{
     method:'PATCH',
-    headers:{'Content-Type':'application/json','apikey':SB_KEY,
-             'Authorization':`Bearer ${SB_KEY}`,'Prefer':'return=minimal'},
-    body: JSON.stringify({ observacion: obs })
+    headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Prefer':'return=minimal'},
+    body:JSON.stringify({observacion:pedidoActivo.observacion})
   }).catch(()=>{});
 }
 function cerrarModal() { document.getElementById('modal-overlay').classList.remove('show'); }
@@ -1767,6 +1785,7 @@ async function pushAllConfig() {
     pushConfigToSupabase('config',            cfg),
     pushConfigToSupabase('platos_off',        platos),
     pushConfigToSupabase('fijos_semanales',   fijos),
+    pushConfigToSupabase('precios_menus',     getPreciosMenus()),
   ]);
 }
 
@@ -1776,6 +1795,7 @@ async function pullAllConfig() {
     pullConfigFromSupabase('config'),
     pullConfigFromSupabase('platos_off'),
     pullConfigFromSupabase('fijos_semanales'),
+    pullConfigFromSupabase('precios_menus'),
   ]);
   if(menus)  localStorage.setItem('dispensia_menus_activos',  JSON.stringify(menus));
   if(cfg)    localStorage.setItem('dispensia_config',         JSON.stringify(cfg));
@@ -1943,6 +1963,69 @@ function toggleSidebar(){
   const ov  = document.getElementById('mob-overlay');
   const isOpen = sb.classList.toggle('open');
   ov.classList.toggle('show', isOpen);
+}
+
+
+// ════════════════════════════════════════════════════════
+// EDITOR DE PRECIOS POR MENÚ
+// ════════════════════════════════════════════════════════
+const PRECIOS_BASE_MENUS = {
+  mesa:        {3:{2:68,4:115,6:159},5:{2:92,4:149,6:199},7:{2:122,4:189,6:259}},
+  express:     {3:{2:62,4:105,6:145},5:{2:85,4:139,6:185},7:{2:115,4:179,6:245}},
+  nortena:     {3:{2:65,4:109,6:149},5:{2:88,4:145,6:195},7:{2:119,4:185,6:255}},
+  criolla:     {3:{2:65,4:109,6:149},5:{2:88,4:145,6:195},7:{2:118,4:185,6:255}},
+  fusion:      {3:{2:72,4:119,6:165},5:{2:95,4:169,6:229},7:{2:125,4:209,6:279}},
+  buena:       {3:{2:75,4:129,6:179},5:{2:99,4:179,6:239},7:{2:129,4:219,6:289}},
+  criollolima: {3:{2:68,4:115,6:159},5:{2:90,4:149,6:199},7:{2:120,4:189,6:259}},
+  fit:         {3:{2:60,4:99,6:135}, 5:{2:80,4:129,6:175},7:{2:109,4:169,6:229}},
+  custom:      {3:{2:65,4:109,6:149},5:{2:89,4:149,6:199},7:{2:119,4:189,6:259}},
+};
+function getPreciosMenus(){
+  try{ return JSON.parse(localStorage.getItem('dispensia_precios_menus')||'null') || JSON.parse(JSON.stringify(PRECIOS_BASE_MENUS)); }
+  catch(e){ return JSON.parse(JSON.stringify(PRECIOS_BASE_MENUS)); }
+}
+function renderPreciosMenus(){
+  const tbody = document.getElementById('precios-menus-tbody');
+  if(!tbody) return;
+  const precios = getPreciosMenus();
+  const combos = [{d:3,p:2},{d:3,p:4},{d:3,p:6},{d:5,p:2},{d:5,p:4},{d:5,p:6},{d:7,p:2},{d:7,p:4},{d:7,p:6}];
+  tbody.innerHTML = MENU_CATALOG.map((m,i)=>{
+    const pr = precios[m.key]||PRECIOS_BASE_MENUS[m.key]||{};
+    const bg = i%2===0?'#FAFAFA':'#FFF';
+    const cells = combos.map(({d,p})=>{
+      const val=(pr[d]||{})[p]||'';
+      const hot=d===5&&p===4;
+      return `<td style="padding:3px 4px;text-align:center;background:${hot?'#E8F5EE':bg};">
+        <div style="display:flex;align-items:center;justify-content:center;gap:2px;">
+          <span style="font-size:10px;color:#AAA;">S/.</span>
+          <input type="number" min="1" max="999" value="${val}" data-menu="${m.key}" data-d="${d}" data-p="${p}"
+            onchange="onPrecioChange(this)"
+            style="width:44px;padding:4px 2px;border:1.5px solid ${hot?'#A5D6A7':'var(--bd)'};border-radius:6px;
+              font-size:12px;font-weight:${hot?700:400};font-family:'Poppins',sans-serif;text-align:center;
+              color:${hot?'#0F5D2E':'#222'};background:${hot?'#F0F9F1':bg};outline:none;">
+        </div>
+      </td>`;
+    }).join('');
+    return `<tr style="border-bottom:1px solid var(--bd);">
+      <td style="padding:7px 12px;background:${bg};"><span style="font-size:14px;">${m.emoji}</span> <span style="font-size:12px;font-weight:600;">${m.nombre}</span></td>
+      ${cells}
+    </tr>`;
+  }).join('');
+}
+function onPrecioChange(inp){
+  const precios=getPreciosMenus();
+  const mk=inp.dataset.menu, d=parseInt(inp.dataset.d), p=parseInt(inp.dataset.p), v=parseInt(inp.value)||0;
+  if(!precios[mk]) precios[mk]={};
+  if(!precios[mk][d]) precios[mk][d]={};
+  precios[mk][d][p]=v;
+  localStorage.setItem('dispensia_precios_menus',JSON.stringify(precios));
+}
+async function guardarPreciosMenus(){
+  const precios=getPreciosMenus();
+  await pushConfigToSupabase('precios_menus',precios);
+  const msg=document.getElementById('precios-saved-msg');
+  if(msg){msg.style.display='block';msg.textContent='✅ Precios guardados en Supabase';setTimeout(()=>msg.style.display='none',4000);}
+  showToast('✅ Precios actualizados en el landing');
 }
 
 function renderAll(){renderDashboard();renderPedidos();}
@@ -3495,11 +3578,7 @@ function initSheets(){
 }
 
 seedDemoIfEmpty();
-pullAllConfig().then(() => {
-  renderDashboard();
-  renderMenuDist();
-  initSheets();
-});
+pullAllConfig().then(()=>{ renderDashboard(); renderMenuDist(); initSheets(); });
 </script>
 
 <!-- ══ OVERLAY GENERADOR PDF ══ -->
