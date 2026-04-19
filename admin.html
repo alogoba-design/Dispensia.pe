@@ -271,21 +271,7 @@ tr:hover td{background:var(--vxl);}
     </div>
   </div>
 
-<!-- Banner configuración Supabase -->
-<div id="sheets-banner" style="background:#EFF6FF;border-bottom:1px solid #93C5FD;padding:10px 28px;display:flex;align-items:center;gap:10px;font-size:12px;flex-wrap:wrap;">
-  <span style="font-size:16px;">🗄️</span>
-  <strong style="color:#1E40AF;">Conecta Supabase</strong>
-  <span style="color:#3B82F6;font-size:11px;">para sincronizar pedidos en tiempo real</span>
-  <input id="supabase-url-input" type="text" placeholder="Project URL (https://xxxxx.supabase.co)"
-    style="flex:2;min-width:180px;padding:6px 10px;border:1.5px solid #93C5FD;border-radius:8px;font-family:'Poppins',sans-serif;font-size:12px;outline:none;">
-  <input id="supabase-key-input" type="text" placeholder="anon public key (eyJhbG...)"
-    style="flex:2;min-width:180px;padding:6px 10px;border:1.5px solid #93C5FD;border-radius:8px;font-family:'Poppins',sans-serif;font-size:12px;outline:none;">
-  <button onclick="guardarSupabaseConfig()" style="background:#1D4ED8;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
-    Conectar →
-  </button>
-  <button onclick="document.getElementById('sheets-banner').style.display='none'"
-    style="background:none;border:none;color:#93C5FD;cursor:pointer;font-size:18px;line-height:1;">×</button>
-</div>
+<!-- Supabase hardcodeado —sin banner -->
 
   <div class="content">
 
@@ -986,7 +972,12 @@ function verPedido(id) {
     <div style="margin-top:10px;display:flex;gap:8px;">
       <a href="https://wa.me/51${(p.telefono||'').replace(/[^0-9]/g,'')}" target="_blank" class="btn btn-v" style="flex:1;text-align:center;text-decoration:none;padding:8px;">💬 WhatsApp</a>
     </div>
-    <button class="btn-pdf btn-pdf-lg" onclick="cerrarModal();generarPDF('${p.id}')">📄 Descargar cartillas de recetas</button>`;
+    <button class="btn-pdf btn-pdf-lg" onclick="cerrarModal();generarPDF('${p.id}')">📄 Descargar cartillas de recetas</button>
+    <button onclick="eliminarPedido('${p.id}')"
+      style="width:100%;margin-top:8px;padding:9px;border-radius:10px;border:1.5px solid #E53935;
+        background:#FFF;color:#E53935;font-weight:600;font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;">
+      🗑 Eliminar pedido
+    </button>`;
   document.getElementById('modal-overlay').classList.add('show');
 }
 
@@ -994,6 +985,7 @@ function actualizarEstado() {
   if(!pedidoActivo) return;
   pedidoActivo.estado = document.getElementById('estado-sel').value;
   savePedido(pedidoActivo);
+  pushEstadoASheets(pedidoActivo.id, pedidoActivo.estado);
   renderDashboard();
   renderPedidos();
   showToast('Estado actualizado: '+pedidoActivo.estado.replace(/_/g,' '));
@@ -1005,9 +997,27 @@ function cambiarEstadoRapido(id) {
   const idx = estados.indexOf(p.estado||'pendiente');
   p.estado = estados[(idx+1)%estados.length];
   savePedido(p);
+  pushEstadoASheets(p.id, p.estado);
   renderDashboard();
   renderPedidos();
   showToast('Estado → '+p.estado.replace(/_/g,' '));
+}
+async function eliminarPedidoEnSupabase(id){
+  try{
+    await fetch(`${SB_URL}/rest/v1/pedidos?id=eq.${encodeURIComponent(id)}`,{
+      method:'DELETE',
+      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Prefer':'return=minimal'}
+    });
+  }catch(e){ console.warn('Delete Supabase error:',e.message); }
+}
+function eliminarPedido(id){
+  if(!confirm('¿Eliminar pedido '+id+'? Esta acción no se puede deshacer.')) return;
+  const pedidos = getPedidos().filter(p => p.id !== id);
+  localStorage.setItem('dispensia_pedidos', JSON.stringify(pedidos));
+  eliminarPedidoEnSupabase(id);
+  cerrarModal();
+  renderAll();
+  showToast('🗑 Pedido eliminado');
 }
 function cerrarModal() { document.getElementById('modal-overlay').classList.remove('show'); }
 
@@ -3355,57 +3365,15 @@ function marcarTodosPagados() {
 function getSupabaseURL(){ return localStorage.getItem('dispensia_supabase_url') || ''; }
 function getSupabaseKey(){ return localStorage.getItem('dispensia_supabase_key') || ''; }
 
-async function guardarSupabaseConfig(){
-  const url = document.getElementById('supabase-url-input').value.trim();
-  const key = document.getElementById('supabase-key-input').value.trim();
-
-  // Validaciones básicas
-  if(!url){
-    alert('Falta la URL del proyecto Supabase\nEjemplo: https://abcdef.supabase.co');
-    return;
-  }
-  if(!url.startsWith('https://')){
-    alert('La URL debe empezar con https://');
-    return;
-  }
-  if(!key || key.length < 30){
-    alert('Falta la API key (anon public)\nEs la clave larga que empieza con eyJhbG...');
-    return;
-  }
-
-  // Guardar y probar
-  const btn = document.querySelector('button[onclick="guardarSupabaseConfig()"]');
-  if(btn){ btn.textContent = '⏳ Conectando...'; btn.disabled = true; }
-
-  try {
-    const r = await fetch(url + '/rest/v1/pedidos?select=id&limit=1', {
-      headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
-    });
-    if(!r.ok){
-      const txt = await r.text();
-      throw new Error('HTTP ' + r.status + ' — ' + txt.slice(0,200));
-    }
-    // Éxito
-    localStorage.setItem('dispensia_supabase_url', url);
-    localStorage.setItem('dispensia_supabase_key', key);
-    document.getElementById('sheets-banner').style.display = 'none';
-    const st = document.getElementById('sheets-status');
-    if(st) st.innerHTML = '🟢 <span style="color:rgba(255,255,255,.7);">Supabase OK</span>';
-    sincronizarDesdeSheets(true);
-  } catch(err) {
-    alert('No se pudo conectar a Supabase:\n' + err.message + '\n\nVerifica que la URL y la key sean correctas.');
-    if(btn){ btn.textContent = 'Conectar →'; btn.disabled = false; }
-  }
-}
+function guardarSupabaseConfig(){}  // hardcoded
 
 // Alias para compatibilidad con código existente
 function guardarSheetsURL(){ guardarSupabaseConfig(); }
 function getSheetsURL(){ return getSupabaseURL(); }
 
 async function sincronizarDesdeSheets(mostrarToast){
-  const url = getSupabaseURL();
-  const key = getSupabaseKey();
-  if(!url){ if(mostrarToast) showToast('⚠ Configura Supabase primero'); return; }
+  const url = SB_URL;
+  const key = SB_KEY;
 
   const btn = document.getElementById('btn-sync');
   if(btn){ btn.disabled=true; btn.textContent='⏳ Sync...'; }
@@ -3480,7 +3448,7 @@ function iniciarAutoSync(){
 }
 
 async function verificarConexion(url){
-  const key = getSupabaseKey();
+  const key = SB_KEY;
   const st  = document.getElementById('sheets-status');
   if(st) st.innerHTML = '<span style="opacity:.6">⏳ Conectando...</span>';
   try{
@@ -3500,11 +3468,7 @@ function initSheets(){
   const url = getSupabaseURL();
   const key = getSupabaseKey();
   if(url && key){
-    const uInput = document.getElementById('supabase-url-input');
-    const kInput = document.getElementById('supabase-key-input');
-    if(uInput) uInput.value = url;
-    if(kInput) kInput.value = key;
-    document.getElementById('sheets-banner').style.display = 'none';
+
     verificarConexion(url);
     iniciarAutoSync();
   }
