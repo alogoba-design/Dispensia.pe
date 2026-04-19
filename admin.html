@@ -683,6 +683,43 @@ tr:hover td{background:var(--vxl);}
 
     <!-- ══ PRECIOS ══ -->
     <div id="tab-precios" class="tab-panel">
+
+      <!-- Editor de precios por menú -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-hdr">
+          <h2>💰 Precios de venta por menú</h2>
+          <button class="btn btn-sm" onclick="guardarPreciosMenus()"
+            style="background:var(--v);color:#fff;">💾 Guardar precios</button>
+        </div>
+        <div class="card-body">
+          <p style="font-size:12px;color:var(--g);margin-bottom:16px;">
+            Edita los precios de cada menú y plan. Los cambios se guardan en Supabase y se reflejan en el landing de inmediato.
+          </p>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+              <thead>
+                <tr style="background:#F5F5F5;">
+                  <th style="padding:8px 12px;text-align:left;font-weight:700;color:#555;border-bottom:2px solid var(--bd);">Menú</th>
+                  <th style="padding:8px;text-align:center;color:#C0392B;border-bottom:2px solid var(--bd);">3d · 2p</th>
+                  <th style="padding:8px;text-align:center;color:#C0392B;border-bottom:2px solid var(--bd);">3d · 4p</th>
+                  <th style="padding:8px;text-align:center;color:#C0392B;border-bottom:2px solid var(--bd);">3d · 6p</th>
+                  <th style="padding:8px;text-align:center;color:#0F5D2E;border-bottom:2px solid var(--bd);">5d · 2p</th>
+                  <th style="padding:8px;text-align:center;color:#0F5D2E;border-bottom:2px solid var(--bd);">5d · 4p</th>
+                  <th style="padding:8px;text-align:center;color:#0F5D2E;border-bottom:2px solid var(--bd);">5d · 6p</th>
+                  <th style="padding:8px;text-align:center;color:#1565C0;border-bottom:2px solid var(--bd);">7d · 2p</th>
+                  <th style="padding:8px;text-align:center;color:#1565C0;border-bottom:2px solid var(--bd);">7d · 4p</th>
+                  <th style="padding:8px;text-align:center;color:#1565C0;border-bottom:2px solid var(--bd);">7d · 6p</th>
+                </tr>
+              </thead>
+              <tbody id="precios-menus-tbody"></tbody>
+            </table>
+          </div>
+          <p style="font-size:11px;color:#AAA;margin-top:10px;">
+            💡 Edita directamente en las celdas. Los campos en verde son los más comprados (5d·4p).
+          </p>
+        </div>
+      </div>
+
       <div class="kpi-grid">
         <div class="kpi-card green"><div class="kpi-label">Break-even semanal</div><div class="kpi-val">14</div><div class="kpi-sub">cajas/sem (plan 4p×5días)</div></div>
         <div class="kpi-card"><div class="kpi-label">Margen bruto variable</div><div class="kpi-val">32%</div><div class="kpi-sub">precio - costo variable</div></div>
@@ -859,6 +896,7 @@ function goTab(id, el) {
   if(id==='semanal') renderSemanal();
   if(id==='calculadora') { renderMenuDist(); calcularCompras(); }
   if(id==='portafolio') renderPortafolio();
+  if(id==='precios') renderPreciosMenus();
   if(id==='menus_semana'){ renderMenusToggle(); renderDiasToggle(); renderPorcToggle(); renderPlatosActivos(); renderEditorFijos(); }
   if(id==='precios') renderPrecios();
 }
@@ -1423,6 +1461,7 @@ function guardarMenusActivos() {
     msg.textContent = `✅ Activos: ${nombres.join(' · ')}`;
     setTimeout(() => { msg.style.display = 'none'; }, 5000);
   }
+  pushAllConfig();
   showToast(`✅ ${activos.length} menú${activos.length !== 1 ? 's' : ''} activo${activos.length !== 1 ? 's' : ''} en el landing`);
 }
 
@@ -1434,7 +1473,6 @@ function guardarMenusActivos() {
 
 const DIAS_OPCIONES   = [{v:3,label:'3 días'},{v:5,label:'5 días'},{v:7,label:'7 días'}];
 const PORCS_OPCIONES  = [{v:2,label:'2 personas'},{v:4,label:'4 personas'},{v:6,label:'6 personas'}];
-
 function getConfigAdmin(){
   try{ return JSON.parse(localStorage.getItem('dispensia_config')||'{}'); }catch(e){ return {}; }
 }
@@ -1520,6 +1558,7 @@ function guardarConfig(){
     msg.textContent = `✅ ${nMenus} menús · Días: ${dias} · Porciones: ${porcs}`;
     setTimeout(()=>{ msg.style.display='none'; }, 5000);
   }
+  pushAllConfig();
   showToast(`✅ Configuración guardada — ${nMenus} menús activos`);
 }
 
@@ -1733,29 +1772,33 @@ async function pullConfigFromSupabase(key) {
 }
 
 async function pushAllConfig() {
-  const menus  = getMenusActivosAdmin();
-  const cfg    = getConfigAdmin();
-  const platos = getPlatosDesactivados();
-  const fijos  = getFijosSemanales();
+  const menus   = getMenusActivosAdmin();
+  const cfg     = getConfigAdmin();
+  const platos  = getPlatosDesactivados();
+  const fijos   = getFijosSemanales();
+  const precios = getPreciosMenus();
   await Promise.all([
-    pushConfigToSupabase('menus_activos',     menus),
-    pushConfigToSupabase('config',            cfg),
-    pushConfigToSupabase('platos_off',        platos),
-    pushConfigToSupabase('fijos_semanales',   fijos),
+    pushConfigToSupabase('menus_activos',   menus),
+    pushConfigToSupabase('config',          cfg),
+    pushConfigToSupabase('platos_off',      platos),
+    pushConfigToSupabase('fijos_semanales', fijos),
+    pushConfigToSupabase('precios_menus',   precios),
   ]);
 }
 
 async function pullAllConfig() {
-  const [menus, cfg, platos, fijos] = await Promise.all([
+  const [menus, cfg, platos, fijos, precios] = await Promise.all([
     pullConfigFromSupabase('menus_activos'),
     pullConfigFromSupabase('config'),
     pullConfigFromSupabase('platos_off'),
     pullConfigFromSupabase('fijos_semanales'),
+    pullConfigFromSupabase('precios_menus'),
   ]);
-  if(menus)  localStorage.setItem('dispensia_menus_activos',  JSON.stringify(menus));
-  if(cfg)    localStorage.setItem('dispensia_config',         JSON.stringify(cfg));
-  if(platos) localStorage.setItem('dispensia_platos_off',     JSON.stringify(platos));
-  if(fijos)  localStorage.setItem('dispensia_fijos_semanales',JSON.stringify(fijos));
+  if(menus)   localStorage.setItem('dispensia_menus_activos',   JSON.stringify(menus));
+  if(cfg)     localStorage.setItem('dispensia_config',          JSON.stringify(cfg));
+  if(platos)  localStorage.setItem('dispensia_platos_off',      JSON.stringify(platos));
+  if(fijos)   localStorage.setItem('dispensia_fijos_semanales', JSON.stringify(fijos));
+  if(precios) localStorage.setItem('dispensia_precios_menus',   JSON.stringify(precios));
 }
 
 
@@ -1919,6 +1962,87 @@ function toggleSidebar(){
   const isOpen = sb.classList.toggle('open');
   ov.classList.toggle('show', isOpen);
 }
+
+
+// ════════════════════════════════════════════════════════
+// EDITOR DE PRECIOS POR MENÚ
+// ════════════════════════════════════════════════════════
+
+// Precios base por menú (fallback si no hay en Supabase)
+const PRECIOS_BASE_MENUS = {
+  mesa:        {3:{2:68,4:115,6:159}, 5:{2:92,4:149,6:199},  7:{2:122,4:189,6:259}},
+  express:     {3:{2:62,4:105,6:145}, 5:{2:85,4:139,6:185},  7:{2:115,4:179,6:245}},
+  nortena:     {3:{2:65,4:109,6:149}, 5:{2:88,4:145,6:195},  7:{2:119,4:185,6:255}},
+  criolla:     {3:{2:65,4:109,6:149}, 5:{2:88,4:145,6:195},  7:{2:118,4:185,6:255}},
+  fusion:      {3:{2:72,4:119,6:165}, 5:{2:95,4:169,6:229},  7:{2:125,4:209,6:279}},
+  buena:       {3:{2:75,4:129,6:179}, 5:{2:99,4:179,6:239},  7:{2:129,4:219,6:289}},
+  criollolima: {3:{2:68,4:115,6:159}, 5:{2:90,4:149,6:199},  7:{2:120,4:189,6:259}},
+  fit:         {3:{2:60,4:99,6:135},  5:{2:80,4:129,6:175},  7:{2:109,4:169,6:229}},
+  custom:      {3:{2:65,4:109,6:149}, 5:{2:89,4:149,6:199},  7:{2:119,4:189,6:259}},
+};
+
+function getPreciosMenus() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('dispensia_precios_menus') || 'null');
+    return stored || JSON.parse(JSON.stringify(PRECIOS_BASE_MENUS));
+  } catch(e) { return JSON.parse(JSON.stringify(PRECIOS_BASE_MENUS)); }
+}
+
+function renderPreciosMenus() {
+  const tbody = document.getElementById('precios-menus-tbody');
+  if(!tbody) return;
+  const precios = getPreciosMenus();
+  const combos = [{d:3,p:2},{d:3,p:4},{d:3,p:6},{d:5,p:2},{d:5,p:4},{d:5,p:6},{d:7,p:2},{d:7,p:4},{d:7,p:6}];
+
+  tbody.innerHTML = MENU_CATALOG.map((m,i) => {
+    const pr = precios[m.key] || PRECIOS_BASE_MENUS[m.key] || {};
+    const bg = i%2===0 ? '#FAFAFA' : '#FFF';
+    const cells = combos.map(({d,p}) => {
+      const val = (pr[d]||{})[p] || '';
+      const isHot = d===5 && p===4;
+      return `<td style="padding:4px 6px;text-align:center;background:${isHot?'#E8F5EE':bg};">
+        <div style="display:flex;align-items:center;justify-content:center;gap:2px;">
+          <span style="font-size:11px;color:#888;">S/.</span>
+          <input type="number" min="1" max="999" value="${val}"
+            data-menu="${m.key}" data-d="${d}" data-p="${p}"
+            onchange="onPrecioChange(this)"
+            style="width:46px;padding:4px 2px;border:1.5px solid ${isHot?'#A5D6A7':'var(--bd)'};
+              border-radius:6px;font-size:12px;font-weight:${isHot?'700':'400'};
+              font-family:'Poppins',sans-serif;text-align:center;
+              color:${isHot?'#0F5D2E':'#222'};background:${isHot?'#F0F9F1':bg};outline:none;">
+        </div>
+      </td>`;
+    }).join('');
+    return `<tr style="border-bottom:1px solid var(--bd);">
+      <td style="padding:8px 12px;background:${bg};">
+        <span style="font-size:14px;">${m.emoji}</span>
+        <span style="font-size:12px;font-weight:600;margin-left:6px;color:#222;">${m.nombre}</span>
+      </td>
+      ${cells}
+    </tr>`;
+  }).join('');
+}
+
+function onPrecioChange(inp) {
+  const precios = getPreciosMenus();
+  const menu = inp.dataset.menu;
+  const d = parseInt(inp.dataset.d);
+  const p = parseInt(inp.dataset.p);
+  const val = parseInt(inp.value) || 0;
+  if(!precios[menu]) precios[menu] = {};
+  if(!precios[menu][d]) precios[menu][d] = {};
+  precios[menu][d][p] = val;
+  localStorage.setItem('dispensia_precios_menus', JSON.stringify(precios));
+}
+
+async function guardarPreciosMenus() {
+  const precios = getPreciosMenus();
+  localStorage.setItem('dispensia_precios_menus', JSON.stringify(precios));
+  // Push to Supabase
+  await pushConfigToSupabase('precios_menus', precios);
+  showToast('✅ Precios guardados en Supabase — se reflejan en el landing');
+}
+
 
 function renderAll(){renderDashboard();renderPedidos();}
 
@@ -3465,18 +3589,19 @@ async function verificarConexion(url){
 }
 
 function initSheets(){
-  const url = getSupabaseURL();
-  const key = getSupabaseKey();
-  if(url && key){
-
-    verificarConexion(url);
-    iniciarAutoSync();
-  }
+  // Credenciales hardcodeadas — siempre conectado
+  verificarConexion(SB_URL);
+  iniciarAutoSync();
 }
 
 seedDemoIfEmpty();
-renderDashboard();
-renderMenuDist();
+// Cargar config de Supabase primero, luego renderizar
+pullAllConfig().then(() => {
+  renderDashboard();
+  renderMenuDist();
+  initSheets();
+  console.log('[Dispensia Admin] Config cargada desde Supabase ✅');
+});
 </script>
 
 <!-- ══ OVERLAY GENERADOR PDF ══ -->

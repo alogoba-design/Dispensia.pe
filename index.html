@@ -670,6 +670,12 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // ═════════════════════════════════════════════════════
 
 // ── MENÚS ACTIVOS (controlado desde el admin) ──
+function getPreciosMenusLanding() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('dispensia_precios_menus') || 'null');
+    return stored || null; // null = usar precios del código
+  } catch(e) { return null; }
+}
 function getFijosSemanalesLanding() {
   try {
     const stored = JSON.parse(localStorage.getItem('dispensia_fijos_semanales') || 'null');
@@ -1180,12 +1186,10 @@ function renderPopupPlanes(){
 
 // ── Cargar config desde Supabase al iniciar ──
 async function cargarConfigDesdeSupabase() {
-  const SB_URL = 'https://dnpkobwulscmowkefgeg.supabase.co';
-  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRucGtvYnd1bHNjbW93a2VmZ2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzQ4MDYsImV4cCI6MjA5MDcxMDgwNn0.Idj6NSUFYQg44BnLRJa23EXSHZkJG5vz6tfnfCGEIt8';
   try {
     const r = await fetch(
-      `${SB_URL}/rest/v1/dispensia_config?select=id,value`,
-      { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
+      `https://dnpkobwulscmowkefgeg.supabase.co/rest/v1/dispensia_config?select=id,value`,
+      { headers: { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRucGtvYnd1bHNjbW93a2VmZ2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzQ4MDYsImV4cCI6MjA5MDcxMDgwNn0.Idj6NSUFYQg44BnLRJa23EXSHZkJG5vz6tfnfCGEIt8', 'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRucGtvYnd1bHNjbW93a2VmZ2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzQ4MDYsImV4cCI6MjA5MDcxMDgwNn0.Idj6NSUFYQg44BnLRJa23EXSHZkJG5vz6tfnfCGEIt8` } }
     );
     if(!r.ok) return;
     const rows = await r.json();
@@ -1194,12 +1198,20 @@ async function cargarConfigDesdeSupabase() {
       if(row.id === 'config')          localStorage.setItem('dispensia_config',           JSON.stringify(row.value));
       if(row.id === 'platos_off')      localStorage.setItem('dispensia_platos_off',       JSON.stringify(row.value));
       if(row.id === 'fijos_semanales') localStorage.setItem('dispensia_fijos_semanales',  JSON.stringify(row.value));
+      if(row.id === 'precios_menus')   localStorage.setItem('dispensia_precios_menus',    JSON.stringify(row.value));
     });
-  } catch(e) { /* Si falla, usa localStorage local como fallback */ }
+  } catch(e) { /* fallback a valores locales */ }
 }
 
 // Cargar config de Supabase y luego renderizar
 cargarConfigDesdeSupabase().then(() => {
+  // Aplicar precios personalizados a los menús si existen en Supabase
+  const preciosCustom = getPreciosMenusLanding();
+  if(preciosCustom) {
+    Object.keys(preciosCustom).forEach(menuKey => {
+      if(MENUS[menuKey]) MENUS[menuKey].precios = preciosCustom[menuKey];
+    });
+  }
   renderGrid();renderPlanesBtns();renderPricing();
 });
 </script>
