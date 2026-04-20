@@ -2056,7 +2056,7 @@ function generarPDFOrdenConsumo(pedidos) {
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
     body{font-family:Arial,sans-serif;font-size:11px;color:#222;background:#fff;}
-    .pagina{width:210mm;padding:12mm 16mm;page-break-after:always;display:flex;flex-direction:column;min-height:148mm;}
+    .pagina{width:100%;max-width:800px;padding:20px 24px;display:flex;flex-direction:column;min-height:auto;margin:0 auto 24px;border:1px solid #E0E0E0;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);page-break-after:always;}
     .pagina:last-child{page-break-after:auto;}
     .cab{display:flex;justify-content:space-between;align-items:center;
          border-bottom:2.5px solid ${V};padding-bottom:8px;margin-bottom:10px;}
@@ -2164,10 +2164,7 @@ function generarPDFOrdenConsumo(pedidos) {
   });
 
   html += '</body></html>';
-    const _bs = html.indexOf('<body');
-  const _be = html.lastIndexOf('</body>');
-  const _bh = _bs>=0 ? html.slice(html.indexOf('>',_bs)+1, _be>=0?_be:undefined) : html;
-  mostrarViewer('📋 Orden de consumo', _bh);
+    mostrarViewer('📋 Orden de consumo', html);
 }
 
 function generarGuiaProduccion(pedidos) {
@@ -2339,9 +2336,9 @@ function generarGuiaProduccion(pedidos) {
         <th style="width:15%">Cantidad total</th>
         <th style="width:35%">Ingredientes para preparar todo</th>
         <th style="width:30%">Pasos</th>
-      </tr>`;` `;
+      </tr>`;
     comp_found.forEach(([nm, d]) => {
-      const COMP_DETAIL = {"Salsa teriyaki": {"ingredientes": [("Sillao", "ml", 0.5), ("Miel de abeja", "ml", 0.3), ("Ajo molido", "g", 0.2)], "prep": "Mezclar en bowl: sillao + miel + ajo molido. Remover hasta integrar. Verter en frasquitos."}, "Salsa BBQ": {"ingredientes": [("Ketchup", "ml", 0.4), ("Miel de abeja", "ml", 0.2), ("Sillao", "ml", 0.2), ("Vinagre rojo", "ml", 0.1), ("Ajo molido", "g", 0.1)], "prep": "Mezclar todos los ingredientes en bowl. Verificar punto de dulzor/acidez. Verter en frasquitos."}, "Salsa agridulce": {"ingredientes": [("Ketchup", "ml", 0.35), ("Vinagre de arroz", "ml", 0.25), ("Azúcar", "g", 0.2), ("Sillao", "ml", 0.15), ("Kion (jengibre) rallado", "g", 0.05)], "prep": "Mezclar en bowl y calentar 2 min si deseas espesar. Enfriar antes de envasar."}, "Aderezo césar": {"ingredientes": [("Mayonesa", "ml", 0.5), ("Limón (jugo)", "ml", 0.15), ("Ajo molido", "g", 0.1), ("Mostaza", "ml", 0.1), ("Queso parmesano rallado", "g", 0.15)], "prep": "Mezclar todos en bowl hasta cremoso. Ajustar sal. Verter en frasquitos."}};
+      const COMP_DETAIL = {"Salsa teriyaki": {"ingredientes": [["Sillao", "ml", 0.5], ["Miel de abeja", "ml", 0.3], ["Ajo molido", "g", 0.2]], "prep": "Mezclar en bowl: sillao + miel + ajo molido. Remover hasta integrar. Verter en frasquitos."}, "Salsa BBQ": {"ingredientes": [["Ketchup", "ml", 0.4], ["Miel de abeja", "ml", 0.2], ["Sillao", "ml", 0.2], ["Vinagre rojo", "ml", 0.1], ["Ajo molido", "g", 0.1]], "prep": "Mezclar todos los ingredientes en bowl. Verificar punto de dulzor/acidez. Verter en frasquitos."}, "Salsa agridulce": {"ingredientes": [["Ketchup", "ml", 0.35], ["Vinagre de arroz", "ml", 0.25], ["Azúcar", "g", 0.2], ["Sillao", "ml", 0.15], ["Kion (jengibre) rallado", "g", 0.05]], "prep": "Mezclar en bowl y calentar 2 min si deseas espesar. Enfriar antes de envasar."}, "Aderezo césar": {"ingredientes": [["Mayonesa", "ml", 0.5], ["Limón (jugo)", "ml", 0.15], ["Ajo molido", "g", 0.1], ["Mostaza", "ml", 0.1], ["Queso parmesano rallado", "g", 0.15]], "prep": "Mezclar todos en bowl hasta cremoso. Ajustar sal. Verter en frasquitos."}};
       const detail = COMP_DETAIL[nm];
       if(!detail) return;
       const ing_html = detail.ingredientes
@@ -2382,10 +2379,7 @@ function generarGuiaProduccion(pedidos) {
   }
 
   html += '</body></html>';
-    const _bs = html.indexOf('<body');
-  const _be = html.lastIndexOf('</body>');
-  const _bh = _bs>=0 ? html.slice(html.indexOf('>',_bs)+1, _be>=0?_be:undefined) : html;
-  mostrarViewer('🏭 Guía de producción', _bh);
+    mostrarViewer('🏭 Guía de producción', html);
 }
 
 
@@ -2396,7 +2390,14 @@ function mostrarViewer(titulo, htmlContent) {
   const tt = document.getElementById('html-viewer-title');
   if(!ov || !ct || !tt) { console.warn('viewer overlay not found'); return; }
   tt.textContent = titulo;
-  ct.innerHTML = htmlContent;
+  // Extract <style> from head + <body> content so styles are preserved
+  let styles = '';
+  const styleMatches = htmlContent.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi);
+  for(const m of styleMatches) styles += '<style>' + m[1] + '</style>';
+  const bs = htmlContent.indexOf('<body');
+  const be = htmlContent.lastIndexOf('</body>');
+  const body = bs>=0 ? htmlContent.slice(htmlContent.indexOf('>',bs)+1, be>=0?be:undefined) : htmlContent;
+  ct.innerHTML = styles + body;
   ov.classList.add('show');
 }
 function cerrarViewer() {
