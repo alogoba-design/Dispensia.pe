@@ -1981,72 +1981,129 @@ async function guardarPreciosMenus(){const precios=getPreciosMenus();await pushC
 // ══════════════════════════════════════════════════════════════
 // PDF ORDEN DE CONSUMO — todos los pedidos en uno
 // ══════════════════════════════════════════════════════════════
-const PRIORIDAD_PLATOS = {"Ceviche de Pollo": 1, "Bowl Acevichado de Pollo": 1, "Bowl Criollo Pollo + Camote": 1, "Locro de Zapallo": 1, "Locro con Pollo a la Plancha": 1, "Locro con Bistec": 1, "Pollo con Champiñones a la Crema": 1, "Ensalada de Atún Fit": 1, "Ensalada César con Pollo": 1, "Chijaukay": 1, "Arroz Chaufa Carnívoro": 1, "Piña Chicken Bowl": 1, "Ají de Gallina Cremoso": 2, "Arroz con Pollo": 2, "Estofado de Pollo": 2, "Estofado de Res": 2, "Estofado Criollo": 2, "Estofado Verde de Pollo": 2, "Lentejas Guisadas con Pollo": 2, "Olluquito con Carne": 2, "Lomo Saltado de Res": 2, "Pollo Saltado": 2, "Arroz Tapado": 2, "Tallarines Rojos con Pollo": 2, "Tallarines Rojos con Carne Molida": 2, "Tallarines Verdes + Bistec": 2, "Tallarines Verdes + Milanesa": 2, "Risotto con Pollo": 2, "Teriyaki Bowl": 2, "Seco de Res": 3, "Seco de Pollo Norteño": 3, "Picante de Carne Criollo": 3, "Pollo a la Mostaza": 3, "Adobo de Chancho": 3, "Pollo BBQ": 3, "Pollo al Horno Criollo": 3, "Pollo al Horno + Puré": 3, "Cerdo Agridulce Crocante": 3, "Tonkatsu": 3, "Fettuccini a la Huancaína": 3, "Spaghetti Ragú Bolognese": 3, "Pasta en Salsa Blanca": 3, "Milanesa de Pollo + Quinua": 2};
-const PRIORIDAD_LABEL  = {1:'🔴 Días 1–2', 2:'🟡 Días 2–4', 3:'🟢 Días 3–6'};
 
-function getPlatosOrdenados(pedido) {
+// ══════════════════════════════════════════════════════════════
+// ORDEN DE CONSUMO — distribución correcta por días del plan
+// ══════════════════════════════════════════════════════════════
+const PRIORIDAD_BASE = {
+  1: ['Ceviche de Pollo','Bowl Acevichado de Pollo','Bowl Criollo Pollo + Camote',
+      'Locro de Zapallo','Locro con Pollo a la Plancha','Locro con Bistec',
+      'Pollo con Champiñones a la Crema','Ensalada de Atún Fit','Ensalada César con Pollo',
+      'Chijaukay','Arroz Chaufa Carnívoro','Piña Chicken Bowl','Arroz con Pollo',
+      'Estofado Verde de Pollo','Ají de Gallina Cremoso'],
+  2: ['Estofado de Pollo','Estofado de Res','Estofado Criollo','Lentejas Guisadas con Pollo',
+      'Olluquito con Carne','Lomo Saltado de Res','Pollo Saltado','Arroz Tapado',
+      'Tallarines Rojos con Pollo','Tallarines Rojos con Carne Molida',
+      'Tallarines Verdes + Bistec','Tallarines Verdes + Milanesa',
+      'Risotto con Pollo','Teriyaki Bowl','Picante de Carne Criollo',
+      'Milanesa de Pollo + Quinua','Pollo a la Mostaza','Cerdo Agridulce Crocante',
+      'Pollada Peruana','Caigua Rellena Casera','Albóndigas con Puré'],
+  3: ['Seco de Res','Seco de Pollo Norteño','Adobo de Chancho','Pollo BBQ',
+      'Pollo al Horno Criollo','Pollo al Horno + Puré',
+      'Fettuccini a la Huancaína','Spaghetti Ragú Bolognese',
+      'Pasta en Salsa Blanca','Tonkatsu']
+};
+
+// Build reverse lookup: plato → prioridad
+const PRIORIDAD_PLATOS = {};
+Object.entries(PRIORIDAD_BASE).forEach(([pr, platos]) => {
+  platos.forEach(p => { PRIORIDAD_PLATOS[p] = parseInt(pr); });
+});
+
+function getPlatosConDia(pedido) {
   const menuKey = pedido.menu || 'mesa';
   const nDias   = pedido.n_dias || 5;
   const fijos   = nDias>=7 ? (MENUS_FIJOS7[menuKey]||[]) : (MENUS_FIJOS[menuKey]||[]);
-  const elegidos = pedido.platos_elegidos ? pedido.platos_elegidos.split(' | ').filter(Boolean) : [];
-  const todos = menuKey==='custom' ? elegidos : [...new Set([...fijos,...elegidos])];
-  return todos.sort((a,b) => (PRIORIDAD_PLATOS[a]||2) - (PRIORIDAD_PLATOS[b]||2));
+  const elegidos = pedido.platos_elegidos
+    ? pedido.platos_elegidos.split(' | ').filter(Boolean) : [];
+  const todos = menuKey==='custom'
+    ? elegidos
+    : [...new Set([...fijos, ...elegidos])];
+
+  // Sort by priority
+  const sorted = todos.sort((a,b) => (PRIORIDAD_PLATOS[a]||2) - (PRIORIDAD_PLATOS[b]||2));
+  const n = sorted.length;
+
+  // Distribute days: spread n platos across nDias days
+  return sorted.map((nombre, i) => {
+    // Calculate which day range this plato falls in
+    const dayPos = Math.round((i / Math.max(n-1, 1)) * (nDias - 1)) + 1;
+    let label, pr;
+    if (dayPos <= Math.ceil(nDias * 0.3)) {
+      pr = 1; label = `Día ${dayPos}`;
+    } else if (dayPos <= Math.ceil(nDias * 0.7)) {
+      pr = 2; label = `Día ${dayPos}`;
+    } else {
+      pr = 3; label = `Día ${dayPos}`;
+    }
+    return { nombre, dia: dayPos, label, pr };
+  });
 }
+
+// Legacy — keep for backward compat
+function getPlatosOrdenados(pedido) {
+  return getPlatosConDia(pedido).map(x => x.nombre);
+}
+
 
 function generarPDFOrdenConsumo(pedidos) {
   if(!pedidos || !pedidos.length) { showToast('⚠ Sin pedidos para generar'); return; }
-  const V = '#0F5D2E', AM = '#F5B93A';
+  const V = '#0F5D2E', R = '#E53935', AM = '#F5B93A';
 
   let html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'Arial',sans-serif;font-size:11px;color:#222;background:#fff;}
-    .pagina{width:210mm;min-height:148mm;padding:14mm 16mm;page-break-after:always;
-            border-bottom:2px solid #eee;display:flex;flex-direction:column;}
-    .pagina:last-child{page-break-after:auto;border-bottom:none;}
+    body{font-family:Arial,sans-serif;font-size:11px;color:#222;background:#fff;}
+    .pagina{width:210mm;padding:12mm 16mm;page-break-after:always;display:flex;flex-direction:column;min-height:148mm;}
+    .pagina:last-child{page-break-after:auto;}
     .cab{display:flex;justify-content:space-between;align-items:center;
-         border-bottom:2.5px solid ${V};padding-bottom:10px;margin-bottom:12px;}
-    .logo-txt{font-size:18px;font-weight:900;color:${V};letter-spacing:-0.5px;}
-    .pedido-id{font-size:10px;color:#888;text-align:right;}
-    .pedido-id strong{font-size:13px;color:#222;display:block;}
-    .cliente-row{background:#F7FCF8;border-radius:8px;padding:8px 12px;margin-bottom:12px;
-                 display:flex;gap:24px;flex-wrap:wrap;}
-    .cl-item span{color:#888;font-size:9px;text-transform:uppercase;display:block;}
+         border-bottom:2.5px solid ${V};padding-bottom:8px;margin-bottom:10px;}
+    .logo{font-size:18px;font-weight:900;color:${V};}
+    .pid{font-size:9px;color:#888;text-align:right;}
+    .pid strong{font-size:13px;color:#222;display:block;}
+    .cliente-row{background:#F7FCF8;border-radius:8px;padding:7px 12px;margin-bottom:10px;
+                 display:flex;gap:20px;flex-wrap:wrap;align-items:center;}
+    .cl-item span{font-size:8px;color:#888;text-transform:uppercase;display:block;}
     .cl-item strong{font-size:11px;}
-    .titulo-orden{font-size:10px;font-weight:700;color:${V};text-transform:uppercase;
-                  letter-spacing:.08em;margin-bottom:8px;}
-    .plato-row{display:flex;align-items:center;gap:10px;padding:7px 10px;
-               border-radius:7px;margin-bottom:5px;}
-    .pr-1{background:#FFE8E8;border-left:3px solid #E53935;}
-    .pr-2{background:#FFF8E1;border-left:3px solid #F5B93A;}
-    .pr-3{background:#E8F5EE;border-left:3px solid ${V};}
-    .p-emoji{font-size:16px;flex-shrink:0;}
+    .sec-title{font-size:9px;font-weight:700;color:${V};text-transform:uppercase;
+               letter-spacing:.08em;margin-bottom:7px;}
+    .plato-card{border-radius:8px;margin-bottom:7px;overflow:hidden;
+                border:1px solid #EEE;}
+    .plato-header{display:flex;align-items:center;gap:8px;padding:7px 10px;}
+    .ph-1{background:#FFE8E8;border-left:3px solid ${R};}
+    .ph-2{background:#FFF8E1;border-left:3px solid ${AM};}
+    .ph-3{background:#E8F5EE;border-left:3px solid ${V};}
+    .p-emoji{font-size:15px;flex-shrink:0;}
     .p-nombre{font-weight:700;font-size:11px;flex:1;}
-    .p-dias{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;
-            white-space:nowrap;}
-    .pr-1 .p-dias{background:#E53935;color:#fff;}
-    .pr-2 .p-dias{background:#F5B93A;color:#7D4E00;}
-    .pr-3 .p-dias{background:${V};color:#fff;}
-    .nota-pie{margin-top:auto;padding-top:10px;border-top:1px solid #EEE;
-              font-size:9px;color:#AAA;text-align:center;}
-    .leyenda{display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap;}
-    .ley-item{display:flex;align-items:center;gap:5px;font-size:9px;}
-    .ley-dot{width:10px;height:10px;border-radius:50%;}
-    @media print{.pagina{page-break-after:always;}body{-webkit-print-color-adjust:exact;}}
+    .p-dia{font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;white-space:nowrap;}
+    .ph-1 .p-dia{background:${R};color:#fff;}
+    .ph-2 .p-dia{background:${AM};color:#7D4E00;}
+    .ph-3 .p-dia{background:${V};color:#fff;}
+    .plato-items{padding:5px 10px 7px;background:#FAFAFA;
+                 display:flex;flex-wrap:wrap;gap:4px;}
+    .item-tag{font-size:9px;padding:2px 7px;border-radius:10px;
+              background:#FFF;border:1px solid #DDD;color:#555;}
+    .item-vacio{background:#E3F2FD;border-color:#90CAF9;color:#1565C0;font-weight:600;}
+    .item-frasquito{background:#F3E5F5;border-color:#CE93D8;color:#6A1B9A;}
+    .item-kraft{background:#F1F8E9;border-color:#A5D6A7;color:#2E7D32;}
+    .leyenda{display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap;}
+    .ley{display:flex;align-items:center;gap:4px;font-size:8px;color:#666;}
+    .ley-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+    .nota-pie{margin-top:auto;padding-top:8px;border-top:1px solid #EEE;
+              font-size:8px;color:#AAA;text-align:center;}
+    @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
   </style></head><body>`;
 
+  const emoji_menu = {mesa:'🍛',express:'⚡',nortena:'🫕',criolla:'🥘',
+                      fusion:'🥢',buena:'🍽️',criollolima:'🔥',fit:'🥗',custom:'⭐'};
+
   pedidos.forEach(p => {
-    const platos = getPlatosOrdenados(p);
-    const emoji_menu = {mesa:'🍛',express:'⚡',nortena:'🫕',criolla:'🥘',
-                        fusion:'🥢',buena:'🍽️',criollolima:'🔥',fit:'🥗',custom:'⭐'};
+    const platosConDia = getPlatosConDia(p);
 
     html += `<div class="pagina">
       <div class="cab">
-        <div class="logo-txt">Dispensia</div>
-        <div class="pedido-id">
-          <strong>${p.id}</strong>
-          ${p.fecha||''}
-        </div>
+        <div class="logo">Dispensia</div>
+        <div class="pid"><strong>${p.id}</strong>${p.fecha||''}</div>
       </div>
       <div class="cliente-row">
         <div class="cl-item"><span>Cliente</span><strong>${p.nombre||'—'}</strong></div>
@@ -2054,61 +2111,80 @@ function generarPDFOrdenConsumo(pedidos) {
         <div class="cl-item"><span>Plan</span><strong>${p.n_dias} días · ${p.porciones} personas</strong></div>
         <div class="cl-item"><span>Entrega</span><strong>${p.distrito||''}</strong></div>
       </div>
-      <div class="titulo-orden">📋 Orden de consumo recomendado</div>
+      <div class="sec-title">📋 Orden de consumo y contenido de cada bolsa</div>
       <div class="leyenda">
-        <div class="ley-item"><div class="ley-dot" style="background:#E53935"></div>Consumir primero (días 1–2)</div>
-        <div class="ley-item"><div class="ley-dot" style="background:#F5B93A"></div>Días 2–4</div>
-        <div class="ley-item"><div class="ley-dot" style="background:#0F5D2E"></div>Puede ir al final</div>
+        <div class="ley"><div class="ley-dot" style="background:#1565C0"></div>Vacío</div>
+        <div class="ley"><div class="ley-dot" style="background:#6A1B9A"></div>Frasquito</div>
+        <div class="ley"><div class="ley-dot" style="background:#2E7D32"></div>Bolsa kraft</div>
       </div>`;
 
-    platos.forEach((nombre,i) => {
+    platosConDia.forEach(({nombre, label, pr}) => {
       const r = RECETAS_DB[nombre];
-      const pr = PRIORIDAD_PLATOS[nombre] || 2;
-      html += `<div class="plato-row pr-${pr}">
-        <span class="p-emoji">${r?.emoji||'🍽️'}</span>
-        <span class="p-nombre">${nombre}</span>
-        <span class="p-dias">${PRIORIDAD_LABEL[pr]}</span>
+      if(!r) return;
+
+      // Build item tags from ingredientes
+      const vacio = [], frasquitos = [], kraft_items = [], otros = [];
+      (r.ingredientes||[]).forEach(grp => {
+        grp.items.forEach(item => {
+          const [nm, qty, u, nota] = item;
+          const nota_l = (nota||'').toLowerCase();
+          const nm_short = nm.length > 28 ? nm.slice(0,26)+'…' : nm;
+          if(nota_l.includes('vacío') || nota_l.includes('vacio'))
+            vacio.push(nm_short);
+          else if(nota_l.includes('frasquito') || nota_l.includes('frasco'))
+            frasquitos.push(nm_short);
+          else if(nota_l.includes('kraft'))
+            kraft_items.push(nm_short);
+          else if(typeof qty === 'number' && qty > 0 && !nota_l.includes('cliente') && !nota_l.includes('casa'))
+            otros.push(nm_short);
+        });
+      });
+
+      const tags = [
+        ...vacio.map(n=>`<span class="item-tag item-vacio">🔒 ${n}</span>`),
+        ...frasquitos.map(n=>`<span class="item-tag item-frasquito">🫙 ${n}</span>`),
+        ...kraft_items.map(n=>`<span class="item-tag item-kraft">🛍️ ${n}</span>`),
+      ].join('');
+
+      html += `<div class="plato-card">
+        <div class="plato-header ph-${pr}">
+          <span class="p-emoji">${r.emoji||'🍽️'}</span>
+          <span class="p-nombre">${nombre}</span>
+          <span class="p-dia">${label}</span>
+        </div>
+        ${tags ? `<div class="plato-items">${tags}</div>` : ''}
       </div>`;
     });
 
     html += `<div class="nota-pie">
-        Guarda todo en refrigeración al recibir · 997 112 625
-      </div>
-    </div>`;
+      Guarda todo en refrigeración al recibir · Consultas: 997 112 625
+    </div></div>`;
   });
 
   html += '</body></html>';
-
-  const win = window.open('','_blank','width=900,height=700');
-  if(!win){ showToast('⚠ Permite ventanas emergentes para imprimir'); return; }
+  const win = window.open('','_blank','width=950,height=750');
+  if(!win){ showToast('⚠ Permite ventanas emergentes'); return; }
   win.document.write(html);
   win.document.close();
-  win.onload = () => { win.print(); };
+  win.onload = () => win.print();
 }
 
-// ══════════════════════════════════════════════════════════════
-// GUÍA OPERATIVA DE PRODUCCIÓN
-// ══════════════════════════════════════════════════════════════
 function generarGuiaProduccion(pedidos) {
   if(!pedidos || !pedidos.length) { showToast('⚠ Sin pedidos'); return; }
 
-  // Acumular: por cada tipo de preparación
-  // sellado: {nombre_prot: {bolsas_2p, bolsas_4p, bolsas_6p, total_kg_o_un}}
-  // frascos: {nombre_salsa: {cantidad_frascos, ingredientes_totales}}
-
-  const sellado  = {}; // proteínas al vacío
-  const frascos  = {}; // salsas y líquidos en frasquito
-  const kraft    = {}; // verduras en bolsa kraft
+  const sellado  = {};
+  const frascos  = {};
+  const kraft    = {};
   const empaque  = {cajas:0, bolsas_vacio:0, bolsas_kraft:0, frasquitos:0};
 
   pedidos.forEach(p => {
-    const menuKey = p.menu || 'mesa';
-    const nDias   = p.n_dias || 5;
-    const porc    = p.porciones || 4;
-    const factor  = porc===2?0.5:porc===6?1.5:1.0;
-    const fijos   = nDias>=7 ? (MENUS_FIJOS7[menuKey]||[]) : (MENUS_FIJOS[menuKey]||[]);
+    const menuKey  = p.menu || 'mesa';
+    const nDias    = p.n_dias || 5;
+    const porc     = p.porciones || 4;
+    const factor   = porc===2?0.5:porc===6?1.5:1.0;
+    const fijos    = nDias>=7 ? (MENUS_FIJOS7[menuKey]||[]) : (MENUS_FIJOS[menuKey]||[]);
     const elegidos = p.platos_elegidos ? p.platos_elegidos.split(' | ').filter(Boolean) : [];
-    const lista   = menuKey==='custom' ? elegidos : [...new Set([...fijos,...elegidos])];
+    const lista    = menuKey==='custom' ? elegidos : [...new Set([...fijos,...elegidos])];
 
     empaque.cajas++;
     empaque.bolsas_kraft += nDias;
@@ -2120,28 +2196,24 @@ function generarGuiaProduccion(pedidos) {
         grp.items.forEach(item => {
           const [nm, qty, u, nota] = item;
           const nota_l = (nota||'').toLowerCase();
-          const nm_l   = nm.toLowerCase();
+          if(typeof qty !== 'number' || qty <= 0) return;
 
-          // Skip if client-side (no unit or qty is string like c/n)
-          if(typeof qty !== 'number') return;
-
-          // Classify by presentation
           if(nota_l.includes('vacío') || nota_l.includes('vacio')) {
-            // Sellado al vacío
-            if(!sellado[nm]) sellado[nm] = {bolsas_2p:0,bolsas_4p:0,bolsas_6p:0,total:0,u};
+            if(!sellado[nm]) sellado[nm] = {bolsas_2p:0,bolsas_4p:0,bolsas_6p:0,total:0,u,pedidos:[]};
             if(porc===2) sellado[nm].bolsas_2p++;
             else if(porc===4) sellado[nm].bolsas_4p++;
             else sellado[nm].bolsas_6p++;
             sellado[nm].total += qty * factor;
+            sellado[nm].pedidos.push(p.id);
             empaque.bolsas_vacio++;
           } else if(nota_l.includes('frasquito') || nota_l.includes('frasco')) {
-            // Frasquito
-            if(!frascos[nm]) frascos[nm] = {cantidad:0,total:0,u};
+            if(!frascos[nm]) frascos[nm] = {cantidad:0,total:0,u,dist:{}};
             frascos[nm].cantidad++;
             frascos[nm].total += qty * factor;
+            const k = qty + u;
+            frascos[nm].dist[k] = (frascos[nm].dist[k]||0) + 1;
             empaque.frasquitos++;
-          } else if(nota_l.includes('kraft') || nota_l.includes('bolsa kraft')) {
-            // Bolsa kraft
+          } else if(nota_l.includes('kraft')) {
             if(!kraft[nm]) kraft[nm] = {cantidad:0,total:0,u};
             kraft[nm].cantidad++;
             kraft[nm].total += qty * factor;
@@ -2151,200 +2223,170 @@ function generarGuiaProduccion(pedidos) {
     });
   });
 
-  const V = '#0F5D2E';
-  const nPed = pedidos.length;
+  const V  = '#0F5D2E', AM = '#F5B93A', R = '#E53935';
+  const nP = pedidos.length;
+
+  const PREP_SALSAS = {"Ají panca pasta": "Ya viene lista — solo porcionar directamente del frasco o bolsa.", "Ají amarillo pasta": "Ya viene lista — solo porcionar directamente del frasco o bolsa.", "Chicha de jora": "Ya viene embotellada — solo medir y verter en frasquitos.", "Vino tinto seco": "Ya viene en botella — medir y verter en frasquitos.", "Vino blanco seco": "Ya viene en botella — medir y verter en frasquitos.", "Sillao": "Directo de botella — medir y verter.", "Vinagre rojo": "Directo de botella — medir y verter.", "Pasta de tomate": "Directo de lata — medir y verter.", "Salsa de ostión": "Directo de frasco — medir y verter.", "Aceite de sésamo": "Directo de botella — medir con cuchara.", "Mostaza": "Directo de frasco — medir y verter.", "Mayonesa": "Directo de frasco — medir y verter.", "Curry en pasta": "Directo de frasco — medir y verter.", "Salsa tonkatsu": "Directo de botella — medir y verter.", "Ketchup": "Directo de frasco — medir y verter."};
+  const PREP_COMPUESTA = {"Salsa teriyaki": "Mezclar en bowl: sillao + miel + ajo molido. Remover hasta integrar. Verter en frasquitos.", "Salsa BBQ": "Mezclar todos los ingredientes en bowl. Verificar punto de dulzor/acidez. Verter en frasquitos.", "Salsa agridulce": "Mezclar en bowl y calentar 2 min si deseas espesar. Enfriar antes de envasar.", "Aderezo césar": "Mezclar todos en bowl hasta cremoso. Ajustar sal. Verter en frasquitos."};
 
   let html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:Arial,sans-serif;font-size:11px;color:#222;padding:16mm 18mm;}
-    h1{font-size:20px;color:${V};font-weight:900;margin-bottom:4px;}
-    .sub{font-size:11px;color:#888;margin-bottom:20px;}
-    .seccion{margin-bottom:24px;}
-    .sec-title{font-size:13px;font-weight:700;color:#fff;background:${V};
-               padding:7px 14px;border-radius:8px;margin-bottom:10px;}
-    .fila{display:flex;align-items:flex-start;gap:0;border-bottom:1px solid #F0F0F0;padding:8px 0;}
-    .fila:last-child{border-bottom:none;}
-    .f-nombre{flex:2;font-weight:600;}
-    .f-total{flex:1;color:${V};font-weight:700;}
-    .f-dist{flex:3;font-size:10px;color:#555;line-height:1.6;}
-    .f-nota{flex:2;font-size:10px;color:#888;font-style:italic;}
-    .resumen{background:#F7FCF8;border-radius:10px;padding:12px 16px;
-             display:flex;gap:24px;flex-wrap:wrap;margin-bottom:20px;}
-    .res-item span{font-size:9px;color:#888;text-transform:uppercase;display:block;}
-    .res-item strong{font-size:15px;color:${V};}
-    @media print{body{padding:10mm;}-webkit-print-color-adjust:exact;}
+    body{font-family:Arial,sans-serif;font-size:11px;color:#222;padding:12mm 18mm;}
+    h1{font-size:20px;color:${V};font-weight:900;margin-bottom:2px;}
+    .sub{font-size:11px;color:#888;margin-bottom:16px;}
+    .resumen{background:#F7FCF8;border-radius:10px;padding:10px 16px;
+             display:flex;gap:20px;flex-wrap:wrap;margin-bottom:18px;}
+    .res-item span{font-size:8px;color:#888;text-transform:uppercase;display:block;}
+    .res-item strong{font-size:16px;color:${V};}
+    .seccion{margin-bottom:22px;}
+    .sec-title{font-size:13px;font-weight:700;color:#fff;padding:7px 14px;
+               border-radius:8px;margin-bottom:10px;}
+    .s-vacio{background:${V};}
+    .s-frasq{background:#6A1B9A;}
+    .s-kraft{background:#2E7D32;}
+    .s-prep{background:#B5610D;}
+    table{width:100%;border-collapse:collapse;}
+    th{background:#F5F5F5;padding:6px 10px;text-align:left;font-size:9px;
+       font-weight:700;color:#555;border-bottom:2px solid #DDD;}
+    td{padding:6px 10px;border-bottom:1px solid #F0F0F0;vertical-align:top;}
+    tr:last-child td{border-bottom:none;}
+    .td-nm{font-weight:600;font-size:11px;}
+    .td-tot{color:${V};font-weight:700;white-space:nowrap;}
+    .td-dist{font-size:10px;color:#555;line-height:1.7;}
+    .td-prep{font-size:10px;color:#444;font-style:italic;line-height:1.5;}
+    .page-break{page-break-before:always;padding-top:12mm;}
+    @media print{body{padding:8mm;}-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   </style></head><body>
-  <h1>📋 Guía de Producción Semanal</h1>
-  <div class="sub">${new Date().toLocaleDateString('es-PE')} · ${nPed} pedidos activos</div>
-
+  <h1>🏭 Guía de Producción Semanal</h1>
+  <div class="sub">${new Date().toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long'})} · ${nP} pedido${nP!==1?'s':''}</div>
   <div class="resumen">
-    <div class="res-item"><span>Pedidos</span><strong>${nPed}</strong></div>
+    <div class="res-item"><span>Pedidos</span><strong>${nP}</strong></div>
     <div class="res-item"><span>Cajas</span><strong>${empaque.cajas}</strong></div>
     <div class="res-item"><span>Bolsas vacío</span><strong>${empaque.bolsas_vacio}</strong></div>
     <div class="res-item"><span>Frasquitos</span><strong>${empaque.frasquitos}</strong></div>
     <div class="res-item"><span>Bolsas kraft</span><strong>${empaque.bolsas_kraft}</strong></div>
   </div>`;
 
-  // SECCIÓN 1: Sellado al vacío
-  const sel_entries = Object.entries(sellado).filter(([,v])=>v.total>0);
-  if(sel_entries.length) {
-    html += `<div class="seccion"><div class="sec-title">🔒 SELLADO AL VACÍO</div>`;
-    sel_entries.sort((a,b)=>b[1].total-a[1].total).forEach(([nm,d])=>{
-      const dist_parts = [];
-      if(d.bolsas_2p) dist_parts.push(`${d.bolsas_2p} bolsa${d.bolsas_2p>1?'s':''} de 2 p.`);
-      if(d.bolsas_4p) dist_parts.push(`${d.bolsas_4p} bolsa${d.bolsas_4p>1?'s':''} de 4 p.`);
-      if(d.bolsas_6p) dist_parts.push(`${d.bolsas_6p} bolsa${d.bolsas_6p>1?'s':''} de 6 p.`);
-      const total_str = d.u==='un'
-        ? `${d.total.toFixed(1)} un → aprox. ${(d.total*1.2).toFixed(1)} kg`
+  // ── SECCIÓN 1: SELLADO AL VACÍO ──
+  const sel_ent = Object.entries(sellado).filter(([,v])=>v.total>0)
+    .sort((a,b)=>b[1].total-a[1].total);
+  if(sel_ent.length) {
+    html += `<div class="seccion">
+      <div class="sec-title s-vacio">🔒 SELLADO AL VACÍO</div>
+      <table><tr>
+        <th style="width:30%">Ingrediente</th>
+        <th style="width:22%">Total a preparar</th>
+        <th style="width:28%">Distribución de bolsas</th>
+        <th style="width:20%">Pedidos</th>
+      </tr>`;
+    sel_ent.forEach(([nm, d]) => {
+      const dist = [];
+      if(d.bolsas_2p) dist.push(`${d.bolsas_2p} bolsa${d.bolsas_2p>1?'s':''} × 2 pers.`);
+      if(d.bolsas_4p) dist.push(`${d.bolsas_4p} bolsa${d.bolsas_4p>1?'s':''} × 4 pers.`);
+      if(d.bolsas_6p) dist.push(`${d.bolsas_6p} bolsa${d.bolsas_6p>1?'s':''} × 6 pers.`);
+      const tot = d.u==='un'
+        ? `${d.total.toFixed(1)} pollos enteros`
         : `${(d.total*1.1).toFixed(2)} ${d.u} (+10%)`;
-      html += `<div class="fila">
-        <div class="f-nombre">${nm}</div>
-        <div class="f-total">${total_str}</div>
-        <div class="f-dist">${dist_parts.join(' · ')}</div>
-      </div>`;
+      html += `<tr>
+        <td class="td-nm">${nm}</td>
+        <td class="td-tot">${tot}</td>
+        <td class="td-dist">${dist.join('<br>')}</td>
+        <td class="td-dist" style="font-size:9px;color:#888;">${[...new Set(d.pedidos)].join(', ')}</td>
+      </tr>`;
     });
-    html += '</div>';
+    html += '</table></div>';
   }
 
-  // SECCIÓN 2: Frasquitos
-  const fra_entries = Object.entries(frascos).filter(([,v])=>v.total>0);
-  if(fra_entries.length) {
-    html += `<div class="seccion"><div class="sec-title">🫙 FRASQUITOS (salsas, pastas de ají, líquidos)</div>`;
-    fra_entries.sort((a,b)=>b[1].cantidad-a[1].cantidad).forEach(([nm,d])=>{
-      const qty_str = d.u==='ml'
-        ? `${(d.total*1.1).toFixed(0)} ml total → ${d.cantidad} frasquitos (~${Math.ceil(d.total/d.cantidad)} ml c/u)`
-        : d.u==='g'
-        ? `${(d.total*1.1).toFixed(0)} g total → ${d.cantidad} frasquitos (~${Math.ceil(d.total/d.cantidad)} g c/u)`
-        : `${d.cantidad} frasquitos`;
-      html += `<div class="fila">
-        <div class="f-nombre">${nm}</div>
-        <div class="f-total">${d.cantidad} frasquitos</div>
-        <div class="f-dist">${qty_str}</div>
-      </div>`;
+  // ── SECCIÓN 2: FRASQUITOS — distribución ──
+  const fra_ent = Object.entries(frascos).filter(([,v])=>v.total>0)
+    .sort((a,b)=>b[1].cantidad-a[1].cantidad);
+  if(fra_ent.length) {
+    html += `<div class="seccion">
+      <div class="sec-title s-frasq">🫙 FRASQUITOS — DISTRIBUCIÓN</div>
+      <table><tr>
+        <th style="width:28%">Salsa / Ingrediente</th>
+        <th style="width:15%">Frasquitos</th>
+        <th style="width:25%">Total + distribución</th>
+        <th style="width:32%">Cómo preparar</th>
+      </tr>`;
+    fra_ent.forEach(([nm, d]) => {
+      const dist_parts = Object.entries(d.dist).map(([k,n]) => {
+        const val = parseFloat(k);
+        const u   = k.replace(/[0-9.]/g,'');
+        return `${n} frasquito${n>1?'s':''} × ${val}${u}`;
+      }).join('<br>');
+      const tot_str = `${(d.total*1.05).toFixed(0)} ${d.u} total`;
+      const prep = PREP_SALSAS[nm] || PREP_COMPUESTA[nm] || 'Medir y porcionar en frasquitos.';
+      html += `<tr>
+        <td class="td-nm">${nm}</td>
+        <td class="td-tot">${d.cantidad}</td>
+        <td class="td-dist">${tot_str}<br>${dist_parts}</td>
+        <td class="td-prep">${prep}</td>
+      </tr>`;
     });
-    html += '</div>';
+    html += '</table></div>';
   }
 
-  // SECCIÓN 3: Bolsas kraft (verduras)
-  const kra_entries = Object.entries(kraft).filter(([,v])=>v.total>0);
-  if(kra_entries.length) {
-    html += `<div class="seccion"><div class="sec-title">🛍️ BOLSAS KRAFT (verduras pre-cortadas)</div>`;
-    kra_entries.sort((a,b)=>b[1].cantidad-a[1].cantidad).forEach(([nm,d])=>{
-      const qty_str = typeof d.total==='number'
-        ? `${(d.total*1.1).toFixed(d.u==='kg'?2:1)} ${d.u} total`
-        : `${d.cantidad} bolsas`;
-      html += `<div class="fila">
-        <div class="f-nombre">${nm}</div>
-        <div class="f-total">${d.cantidad} bolsas</div>
-        <div class="f-dist">${qty_str}</div>
-      </div>`;
+  // ── SECCIÓN 3: PREP DETALLADA DE SALSAS COMPUESTAS ──
+  const comp_found = fra_ent.filter(([nm]) => nm in PREP_COMPUESTA);
+  if(comp_found.length) {
+    html += `<div class="seccion page-break">
+      <div class="sec-title s-prep">🧪 PREPARACIÓN DETALLADA — SALSAS COMPUESTAS</div>
+      <table><tr>
+        <th style="width:20%">Salsa</th>
+        <th style="width:15%">Cantidad total</th>
+        <th style="width:35%">Ingredientes para preparar todo</th>
+        <th style="width:30%">Pasos</th>
+      </tr>`;` `;
+    comp_found.forEach(([nm, d]) => {
+      const COMP_DETAIL = {"Salsa teriyaki": {"ingredientes": [("Sillao", "ml", 0.5), ("Miel de abeja", "ml", 0.3), ("Ajo molido", "g", 0.2)], "prep": "Mezclar en bowl: sillao + miel + ajo molido. Remover hasta integrar. Verter en frasquitos."}, "Salsa BBQ": {"ingredientes": [("Ketchup", "ml", 0.4), ("Miel de abeja", "ml", 0.2), ("Sillao", "ml", 0.2), ("Vinagre rojo", "ml", 0.1), ("Ajo molido", "g", 0.1)], "prep": "Mezclar todos los ingredientes en bowl. Verificar punto de dulzor/acidez. Verter en frasquitos."}, "Salsa agridulce": {"ingredientes": [("Ketchup", "ml", 0.35), ("Vinagre de arroz", "ml", 0.25), ("Azúcar", "g", 0.2), ("Sillao", "ml", 0.15), ("Kion (jengibre) rallado", "g", 0.05)], "prep": "Mezclar en bowl y calentar 2 min si deseas espesar. Enfriar antes de envasar."}, "Aderezo césar": {"ingredientes": [("Mayonesa", "ml", 0.5), ("Limón (jugo)", "ml", 0.15), ("Ajo molido", "g", 0.1), ("Mostaza", "ml", 0.1), ("Queso parmesano rallado", "g", 0.15)], "prep": "Mezclar todos en bowl hasta cremoso. Ajustar sal. Verter en frasquitos."}};
+      const detail = COMP_DETAIL[nm];
+      if(!detail) return;
+      const ing_html = detail.ingredientes
+        ? detail.ingredientes.map(([i_nm, i_u, i_frac]) =>
+            `${i_nm}: <strong>${(d.total * i_frac * 1.05).toFixed(0)} ${i_u}</strong>`
+          ).join('<br>')
+        : '—';
+      html += `<tr>
+        <td class="td-nm">${nm}</td>
+        <td class="td-tot">${(d.total*1.05).toFixed(0)} ${d.u}</td>
+        <td class="td-dist">${ing_html}</td>
+        <td class="td-prep">${detail.prep||PREP_COMPUESTA[nm]||''}</td>
+      </tr>`;
     });
-    html += '</div>';
+    html += '</table></div>';
+  }
+
+  // ── SECCIÓN 4: BOLSAS KRAFT ──
+  const kra_ent = Object.entries(kraft).filter(([,v])=>v.total>0)
+    .sort((a,b)=>b[1].cantidad-a[1].cantidad);
+  if(kra_ent.length) {
+    html += `<div class="seccion">
+      <div class="sec-title s-kraft">🛍️ BOLSAS KRAFT — VERDURAS PRE-CORTADAS</div>
+      <table><tr>
+        <th style="width:35%">Verdura / Ingrediente</th>
+        <th style="width:20%">Bolsas</th>
+        <th style="width:45%">Total a preparar (+5%)</th>
+      </tr>`;
+    kra_ent.forEach(([nm, d]) => {
+      const tot = `${(d.total*1.05).toFixed(d.u==='kg'?2:1)} ${d.u}`;
+      html += `<tr>
+        <td class="td-nm">${nm}</td>
+        <td class="td-tot">${d.cantidad} bolsas</td>
+        <td class="td-dist">${tot} — 1 bolsa kraft por plato por pedido</td>
+      </tr>`;
+    });
+    html += '</table></div>';
   }
 
   html += '</body></html>';
-
-  const win = window.open('','_blank','width=1000,height=750');
-  if(!win){ showToast('⚠ Permite ventanas emergentes'); return; }
+  const win = window.open('','_blank','width=1100,height=800');
+  if(!win){ showToast('⚠ Activa ventanas emergentes en el navegador'); return; }
   win.document.write(html);
   win.document.close();
   win.onload = () => win.print();
 }
-
-function renderAll(){renderDashboard();renderPedidos();}
-
-// ── DEMO DATA ──
-
-function seedDemoOrders() {
-  if(getPedidos().length > 0) return;
-  const demo = [{"id": "PED-0001", "fecha": "04/05/2025 10:00", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 3, "porciones": 2, "platos_elegidos": "", "metodo_pago": "yape", "monto": 68, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T10:00:00"},
-    {"id": "PED-0002", "fecha": "04/05/2025 10:15", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 3, "porciones": 4, "platos_elegidos": "", "metodo_pago": "plin", "monto": 115, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T10:15:00"},
-    {"id": "PED-0003", "fecha": "04/05/2025 10:30", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 3, "porciones": 6, "platos_elegidos": "", "metodo_pago": "yape", "monto": 159, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T10:30:00"},
-    {"id": "PED-0004", "fecha": "04/05/2025 10:45", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 5, "porciones": 2, "platos_elegidos": "Tallarines Rojos con Pollo | Lentejas Guisadas con Pollo", "metodo_pago": "plin", "monto": 92, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T10:45:00"},
-    {"id": "PED-0005", "fecha": "04/05/2025 11:00", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 5, "porciones": 4, "platos_elegidos": "Locro de Zapallo | Pollo al Horno + Puré", "metodo_pago": "yape", "monto": 149, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T11:00:00"},
-    {"id": "PED-0006", "fecha": "04/05/2025 11:15", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 5, "porciones": 6, "platos_elegidos": "Estofado Verde de Pollo | Olluquito con Carne", "metodo_pago": "plin", "monto": 199, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T11:15:00"},
-    {"id": "PED-0007", "fecha": "04/05/2025 11:30", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 7, "porciones": 2, "platos_elegidos": "Tallarines Rojos con Pollo | Lentejas Guisadas con Pollo | Locro de Zapallo | Pollo al Horno + Puré", "metodo_pago": "yape", "monto": 122, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T11:30:00"},
-    {"id": "PED-0008", "fecha": "04/05/2025 11:45", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 7, "porciones": 4, "platos_elegidos": "Estofado Verde de Pollo | Olluquito con Carne | Tallarines Rojos con Pollo | Lentejas Guisadas con Pollo", "metodo_pago": "plin", "monto": 189, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T11:45:00"},
-    {"id": "PED-0009", "fecha": "04/05/2025 12:00", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 7, "porciones": 6, "platos_elegidos": "Locro de Zapallo | Pollo al Horno + Puré | Estofado Verde de Pollo | Olluquito con Carne", "metodo_pago": "yape", "monto": 259, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T12:00:00"},
-    {"id": "PED-0010", "fecha": "04/05/2025 12:15", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 3, "porciones": 2, "platos_elegidos": "", "metodo_pago": "plin", "monto": 62, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T12:15:00"},
-    {"id": "PED-0011", "fecha": "04/05/2025 12:30", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 3, "porciones": 4, "platos_elegidos": "", "metodo_pago": "yape", "monto": 105, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T12:30:00"},
-    {"id": "PED-0012", "fecha": "04/05/2025 12:45", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 3, "porciones": 6, "platos_elegidos": "", "metodo_pago": "plin", "monto": 145, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T12:45:00"},
-    {"id": "PED-0013", "fecha": "04/05/2025 13:00", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 5, "porciones": 2, "platos_elegidos": "Pasta en Salsa Blanca + Milanesa | Tallarines Verdes + Proteína Apanada", "metodo_pago": "yape", "monto": 85, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T13:00:00"},
-    {"id": "PED-0014", "fecha": "04/05/2025 13:15", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 5, "porciones": 4, "platos_elegidos": "Lomo Saltado | Arroz Tapado", "metodo_pago": "plin", "monto": 139, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T13:15:00"},
-    {"id": "PED-0015", "fecha": "04/05/2025 13:30", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 5, "porciones": 6, "platos_elegidos": "Ensalada César con Pollo | Pollo a la Mostaza", "metodo_pago": "yape", "monto": 185, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T13:30:00"},
-    {"id": "PED-0016", "fecha": "04/05/2025 13:45", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 7, "porciones": 2, "platos_elegidos": "Pasta en Salsa Blanca + Milanesa | Tallarines Verdes + Proteína Apanada | Lomo Saltado | Arroz Tapado", "metodo_pago": "plin", "monto": 115, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T13:45:00"},
-    {"id": "PED-0017", "fecha": "04/05/2025 14:00", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 7, "porciones": 4, "platos_elegidos": "Ensalada César con Pollo | Pollo a la Mostaza | Pasta en Salsa Blanca + Milanesa | Tallarines Verdes + Proteína Apanada", "metodo_pago": "yape", "monto": 179, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T14:00:00"},
-    {"id": "PED-0018", "fecha": "04/05/2025 14:15", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 7, "porciones": 6, "platos_elegidos": "Lomo Saltado | Arroz Tapado | Ensalada César con Pollo | Pollo a la Mostaza", "metodo_pago": "plin", "monto": 245, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T14:15:00"},
-    {"id": "PED-0019", "fecha": "04/05/2025 14:30", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 3, "porciones": 2, "platos_elegidos": "", "metodo_pago": "yape", "monto": 65, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T14:30:00"},
-    {"id": "PED-0020", "fecha": "04/05/2025 14:45", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 3, "porciones": 4, "platos_elegidos": "", "metodo_pago": "plin", "monto": 109, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T14:45:00"},
-    {"id": "PED-0021", "fecha": "04/05/2025 15:00", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 3, "porciones": 6, "platos_elegidos": "", "metodo_pago": "yape", "monto": 149, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T15:00:00"},
-    {"id": "PED-0022", "fecha": "04/05/2025 15:15", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 5, "porciones": 2, "platos_elegidos": "Seco de Res | Estofado Verde de Pollo", "metodo_pago": "plin", "monto": 88, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T15:15:00"},
-    {"id": "PED-0023", "fecha": "04/05/2025 15:30", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 5, "porciones": 4, "platos_elegidos": "Olluquito con Carne | Locro de Zapallo", "metodo_pago": "yape", "monto": 145, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T15:30:00"},
-    {"id": "PED-0024", "fecha": "04/05/2025 15:45", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 5, "porciones": 6, "platos_elegidos": "Picante de Carne Criollo | Lentejas Guisadas con Pollo", "metodo_pago": "plin", "monto": 195, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T15:45:00"},
-    {"id": "PED-0025", "fecha": "04/05/2025 16:00", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 7, "porciones": 2, "platos_elegidos": "Seco de Res | Estofado Verde de Pollo | Olluquito con Carne | Locro de Zapallo", "metodo_pago": "yape", "monto": 119, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T16:00:00"},
-    {"id": "PED-0026", "fecha": "04/05/2025 16:15", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 7, "porciones": 4, "platos_elegidos": "Picante de Carne Criollo | Lentejas Guisadas con Pollo | Seco de Res | Estofado Verde de Pollo", "metodo_pago": "plin", "monto": 185, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T16:15:00"},
-    {"id": "PED-0027", "fecha": "04/05/2025 16:30", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 7, "porciones": 6, "platos_elegidos": "Olluquito con Carne | Locro de Zapallo | Picante de Carne Criollo | Lentejas Guisadas con Pollo", "metodo_pago": "yape", "monto": 255, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T16:30:00"},
-    {"id": "PED-0028", "fecha": "04/05/2025 16:45", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 3, "porciones": 2, "platos_elegidos": "", "metodo_pago": "plin", "monto": 65, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T16:45:00"},
-    {"id": "PED-0029", "fecha": "04/05/2025 17:00", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 3, "porciones": 4, "platos_elegidos": "", "metodo_pago": "yape", "monto": 109, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T17:00:00"},
-    {"id": "PED-0030", "fecha": "04/05/2025 17:15", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 3, "porciones": 6, "platos_elegidos": "", "metodo_pago": "plin", "monto": 149, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T17:15:00"},
-    {"id": "PED-0031", "fecha": "04/05/2025 17:30", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 5, "porciones": 2, "platos_elegidos": "Estofado Criollo | Picante de Carne Criollo", "metodo_pago": "yape", "monto": 88, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T17:30:00"},
-    {"id": "PED-0032", "fecha": "04/05/2025 17:45", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 5, "porciones": 4, "platos_elegidos": "Seco de Res | Ceviche de Pollo", "metodo_pago": "plin", "monto": 145, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T17:45:00"},
-    {"id": "PED-0033", "fecha": "04/05/2025 18:00", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 5, "porciones": 6, "platos_elegidos": "Locro de Zapallo | Arroz con Pollo", "metodo_pago": "yape", "monto": 195, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T18:00:00"},
-    {"id": "PED-0034", "fecha": "04/05/2025 18:15", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 7, "porciones": 2, "platos_elegidos": "Estofado Criollo | Picante de Carne Criollo | Seco de Res | Ceviche de Pollo", "metodo_pago": "plin", "monto": 118, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T18:15:00"},
-    {"id": "PED-0035", "fecha": "04/05/2025 18:30", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 7, "porciones": 4, "platos_elegidos": "Locro de Zapallo | Arroz con Pollo | Estofado Criollo | Picante de Carne Criollo", "metodo_pago": "yape", "monto": 185, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T18:30:00"},
-    {"id": "PED-0036", "fecha": "04/05/2025 18:45", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 7, "porciones": 6, "platos_elegidos": "Seco de Res | Ceviche de Pollo | Locro de Zapallo | Arroz con Pollo", "metodo_pago": "plin", "monto": 255, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T18:45:00"},
-    {"id": "PED-0037", "fecha": "04/05/2025 19:00", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 3, "porciones": 2, "platos_elegidos": "", "metodo_pago": "yape", "monto": 72, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T19:00:00"},
-    {"id": "PED-0038", "fecha": "04/05/2025 19:15", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 3, "porciones": 4, "platos_elegidos": "", "metodo_pago": "plin", "monto": 119, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T19:15:00"},
-    {"id": "PED-0039", "fecha": "04/05/2025 19:30", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 3, "porciones": 6, "platos_elegidos": "", "metodo_pago": "yape", "monto": 165, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T19:30:00"},
-    {"id": "PED-0040", "fecha": "04/05/2025 19:45", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 5, "porciones": 2, "platos_elegidos": "Arroz Chaufa Carnívoro | Chijaukay", "metodo_pago": "plin", "monto": 95, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T19:45:00"},
-    {"id": "PED-0041", "fecha": "04/05/2025 20:00", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 5, "porciones": 4, "platos_elegidos": "Lomo de Cerdo al Curry Cremoso | Tallarines Verdes + Proteína Apanada", "metodo_pago": "yape", "monto": 169, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T20:00:00"},
-    {"id": "PED-0042", "fecha": "04/05/2025 20:15", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 5, "porciones": 6, "platos_elegidos": "Lomo Saltado | Pollo BBQ con Papas", "metodo_pago": "plin", "monto": 229, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T20:15:00"},
-    {"id": "PED-0043", "fecha": "04/05/2025 20:30", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 7, "porciones": 2, "platos_elegidos": "Arroz Chaufa Carnívoro | Chijaukay | Lomo de Cerdo al Curry Cremoso | Tallarines Verdes + Proteína Apanada", "metodo_pago": "yape", "monto": 125, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T20:30:00"},
-    {"id": "PED-0044", "fecha": "04/05/2025 20:45", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 7, "porciones": 4, "platos_elegidos": "Lomo Saltado | Pollo BBQ con Papas | Arroz Chaufa Carnívoro | Chijaukay", "metodo_pago": "plin", "monto": 209, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T20:45:00"},
-    {"id": "PED-0045", "fecha": "04/05/2025 21:00", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 7, "porciones": 6, "platos_elegidos": "Lomo de Cerdo al Curry Cremoso | Tallarines Verdes + Proteína Apanada | Lomo Saltado | Pollo BBQ con Papas", "metodo_pago": "yape", "monto": 279, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T21:00:00"},
-    {"id": "PED-0046", "fecha": "04/05/2025 21:15", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 3, "porciones": 2, "platos_elegidos": "", "metodo_pago": "plin", "monto": 75, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T21:15:00"},
-    {"id": "PED-0047", "fecha": "04/05/2025 21:30", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 3, "porciones": 4, "platos_elegidos": "", "metodo_pago": "yape", "monto": 129, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T21:30:00"},
-    {"id": "PED-0048", "fecha": "04/05/2025 21:45", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 3, "porciones": 6, "platos_elegidos": "", "metodo_pago": "plin", "monto": 179, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T21:45:00"},
-    {"id": "PED-0049", "fecha": "04/05/2025 22:00", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 5, "porciones": 2, "platos_elegidos": "Fettuccini a la Huancaína + Lomo | Tallarines Rojos con Pollo", "metodo_pago": "yape", "monto": 99, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T22:00:00"},
-    {"id": "PED-0050", "fecha": "04/05/2025 22:15", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 5, "porciones": 4, "platos_elegidos": "Pasta en Salsa Blanca + Milanesa | Pollo al Horno Criollo + Ensalada Rusa", "metodo_pago": "plin", "monto": 179, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T22:15:00"},
-    {"id": "PED-0051", "fecha": "04/05/2025 22:30", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 5, "porciones": 6, "platos_elegidos": "Pollo con Champiñones a la Crema | Lomo Saltado", "metodo_pago": "yape", "monto": 239, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T22:30:00"},
-    {"id": "PED-0052", "fecha": "04/05/2025 22:45", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 7, "porciones": 2, "platos_elegidos": "Fettuccini a la Huancaína + Lomo | Tallarines Rojos con Pollo | Pasta en Salsa Blanca + Milanesa | Pollo al Horno Criollo + Ensalada Rusa", "metodo_pago": "plin", "monto": 129, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T22:45:00"},
-    {"id": "PED-0053", "fecha": "04/05/2025 23:00", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 7, "porciones": 4, "platos_elegidos": "Pollo con Champiñones a la Crema | Lomo Saltado | Fettuccini a la Huancaína + Lomo | Tallarines Rojos con Pollo", "metodo_pago": "yape", "monto": 219, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T23:00:00"},
-    {"id": "PED-0054", "fecha": "04/05/2025 23:15", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 7, "porciones": 6, "platos_elegidos": "Pasta en Salsa Blanca + Milanesa | Pollo al Horno Criollo + Ensalada Rusa | Pollo con Champiñones a la Crema | Lomo Saltado", "metodo_pago": "plin", "monto": 289, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T23:15:00"},
-    {"id": "PED-0055", "fecha": "04/05/2025 23:30", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 3, "porciones": 2, "platos_elegidos": "", "metodo_pago": "yape", "monto": 68, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-04T23:30:00"},
-    {"id": "PED-0056", "fecha": "04/05/2025 23:45", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 3, "porciones": 4, "platos_elegidos": "", "metodo_pago": "plin", "monto": 115, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-04T23:45:00"},
-    {"id": "PED-0057", "fecha": "05/05/2025 00:00", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 3, "porciones": 6, "platos_elegidos": "", "metodo_pago": "yape", "monto": 159, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-05T00:00:00"},
-    {"id": "PED-0058", "fecha": "05/05/2025 00:15", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 5, "porciones": 2, "platos_elegidos": "Pollo a la Mostaza | Pollo al Horno Criollo + Ensalada Rusa", "metodo_pago": "plin", "monto": 90, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-05T00:15:00"},
-    {"id": "PED-0059", "fecha": "05/05/2025 00:30", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 5, "porciones": 4, "platos_elegidos": "Pollo BBQ con Papas | Pollo con Champiñones a la Crema", "metodo_pago": "yape", "monto": 149, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-05T00:30:00"},
-    {"id": "PED-0060", "fecha": "05/05/2025 00:45", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 5, "porciones": 6, "platos_elegidos": "Lentejas Guisadas con Pollo | Arroz a la Jardinera", "metodo_pago": "plin", "monto": 199, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-05T00:45:00"},
-    {"id": "PED-0061", "fecha": "05/05/2025 01:00", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 7, "porciones": 2, "platos_elegidos": "Lentejas Guisadas con Pollo | Arroz a la Jardinera | Ceviche de Pollo | Pollo a la Mostaza", "metodo_pago": "yape", "monto": 120, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-05T01:00:00"},
-    {"id": "PED-0062", "fecha": "05/05/2025 01:15", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 7, "porciones": 4, "platos_elegidos": "Pollo al Horno Criollo + Ensalada Rusa | Pollo BBQ con Papas | Pollo con Champiñones a la Crema | Lentejas Guisadas con Pollo", "metodo_pago": "plin", "monto": 189, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-05T01:15:00"},
-    {"id": "PED-0063", "fecha": "05/05/2025 01:30", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 7, "porciones": 6, "platos_elegidos": "Arroz a la Jardinera | Ceviche de Pollo | Pollo a la Mostaza | Pollo al Horno Criollo + Ensalada Rusa", "metodo_pago": "yape", "monto": 259, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-05T01:30:00"},
-    {"id": "PED-0064", "fecha": "05/05/2025 01:45", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 3, "porciones": 2, "platos_elegidos": "", "metodo_pago": "plin", "monto": 60, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T01:45:00"},
-    {"id": "PED-0065", "fecha": "05/05/2025 02:00", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 3, "porciones": 4, "platos_elegidos": "", "metodo_pago": "yape", "monto": 99, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T02:00:00"},
-    {"id": "PED-0066", "fecha": "05/05/2025 02:15", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 3, "porciones": 6, "platos_elegidos": "", "metodo_pago": "plin", "monto": 135, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T02:15:00"},
-    {"id": "PED-0067", "fecha": "05/05/2025 02:30", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 5, "porciones": 2, "platos_elegidos": "Ensalada César con Pollo | Bowl Criollo Pollo + Camote", "metodo_pago": "yape", "monto": 80, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T02:30:00"},
-    {"id": "PED-0068", "fecha": "05/05/2025 02:45", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 5, "porciones": 4, "platos_elegidos": "Piña Chicken Bowl | Teriyaki Bowl", "metodo_pago": "plin", "monto": 129, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T02:45:00"},
-    {"id": "PED-0069", "fecha": "05/05/2025 03:00", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 5, "porciones": 6, "platos_elegidos": "Locro de Zapallo | Lentejas Guisadas con Pollo", "metodo_pago": "yape", "monto": 175, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T03:00:00"},
-    {"id": "PED-0070", "fecha": "05/05/2025 03:15", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 7, "porciones": 2, "platos_elegidos": "Ensalada César con Pollo | Bowl Criollo Pollo + Camote | Piña Chicken Bowl | Teriyaki Bowl", "metodo_pago": "plin", "monto": 109, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T03:15:00"},
-    {"id": "PED-0071", "fecha": "05/05/2025 03:30", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 7, "porciones": 4, "platos_elegidos": "Locro de Zapallo | Lentejas Guisadas con Pollo | Ensalada César con Pollo | Bowl Criollo Pollo + Camote", "metodo_pago": "yape", "monto": 169, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T03:30:00"},
-    {"id": "PED-0072", "fecha": "05/05/2025 03:45", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 7, "porciones": 6, "platos_elegidos": "Piña Chicken Bowl | Teriyaki Bowl | Locro de Zapallo | Lentejas Guisadas con Pollo", "metodo_pago": "plin", "monto": 229, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T03:45:00"}];
-  localStorage.setItem('dispensia_pedidos', JSON.stringify(demo));
-}
-
-function seedDemoIfEmpty(){
-  if(getPedidos().length) return;
-  const demos=[
-    {id:'DIS-001',fecha:'31/03/2025 09:14',nombre:'Claudia Morales',email:'claudia@gmail.com',telefono:'999123456',menu:'mesa',menu_nombre:'La Mesa de Siempre',n_dias:5,porciones:4,platos_elegidos:'Locro de Zapallo | Olluquito con Carne',metodo_pago:'yape',monto:149,estado:'entregado',direccion:'Av. Larco 1234',distrito:'Miraflores',notas:''},
-    {id:'DIS-002',fecha:'31/03/2025 10:30',nombre:'Rodrigo Vargas',email:'rvargas@gmail.com',telefono:'998765432',menu:'express',menu_nombre:'Cocina Express',n_dias:5,porciones:2,platos_elegidos:'Estofado Verde de Pollo | Pollo al Horno Criollo',metodo_pago:'plin',monto:79,estado:'en_camino',direccion:'Jr. Las Flores 456',distrito:'San Isidro',notas:'Portón azul'},
-    {id:'DIS-003',fecha:'31/03/2025 11:05',nombre:'Patricia Huamán',email:'patriciahm@hotmail.com',telefono:'987654321',menu:'nortena',menu_nombre:'Criollo Lima',n_dias:7,porciones:4,platos_elegidos:'Estofado Verde de Pollo | Locro de Zapallo | Arroz con Pollo',metodo_pago:'yape',monto:199,estado:'pendiente_verificacion',direccion:'Calle Los Pinos 789',distrito:'La Molina',notas:''},
-    {id:'DIS-004',fecha:'31/03/2025 14:20',nombre:'Marcos Espinoza',email:'marcos.e@gmail.com',telefono:'976543210',menu:'fusion',menu_nombre:'Sabores del Mundo',n_dias:5,porciones:6,platos_elegidos:'Lomo Saltado | Arroz Chaufa Carnívoro',metodo_pago:'yape',monto:229,estado:'preparando',direccion:'Av. Colonial 321',distrito:'Jesús María',notas:'Llamar 30 min antes'},
-    {id:'DIS-005',fecha:'31/03/2025 15:45',nombre:'Sofía Ríos',email:'sofia.rios@gmail.com',telefono:'965432109',menu:'buena',menu_nombre:'La Buena Mesa',n_dias:3,porciones:2,platos_elegidos:'',metodo_pago:'plin',monto:75,estado:'pendiente',direccion:'Calle Roma 567',distrito:'Barranco',notas:''},
-  ];
-  localStorage.setItem('dispensia_pedidos',JSON.stringify(demos));
-}
-
 
 // ════════════════════════════════════════════════
 // BASE DE DATOS DE RECETAS (ingredientes escalables)
@@ -2357,7 +2399,7 @@ const RECETAS_DB = {
     desc:"Hebras de pollo en salsa cremosa de ají amarillo, pan, leche evaporada y pecanas. Sobre papas amarillas y arroz.",
     color:"#C8832A",
     ingredientes:[
-      {g:"Para el pollo",items:[["Pollo (½ pechuga + pierna)",700,"g"],["Sal","al gusto","",""]]},
+      {g:"Para el pollo",items:[["Presas de pollo",700,"g"],["Sal","al gusto","",""]]},
       {g:"Para la crema",items:[["Cebolla blanca",150,"g","picada"],["Ajo",15,"g","molido"],["Pan francés",120,"g","en trozos"],["Pasta de ají amarillo",60,"g",""],["Pecanas",50,"g",""],["Queso parmesano",50,"g","rallado"],["Leche evaporada",400,"ml","≈1 lata"],["Mantequilla",20,"g",""],["Palillo / cúrcuma",2,"g","½ cdita"]]},
       {g:"Para servir",items:[["Papas amarillas","c/n","","sancochadas"],["Arroz blanco","c/n","","graneado"],["Huevos duros",2,"un","en rodajas"],["Aceitunas de botija","al gusto","",""]]}
     ],
@@ -2427,7 +2469,7 @@ const RECETAS_DB = {
     desc:"Tradición de barrio. Pollo marinado en ají panca, cerveza y soya. Dorado en plancha con papas y ají de huacatay.",
     color:"#D4810A",
     ingredientes:[
-      {g:"Para el pollo",items:[["Pollo entero en presas",1,"un","≈2.5 kg"],["Pasta de ají panca",6,"cdas",""],["Ajo molido",4,"cdas",""],["Salsa de soya",3,"cdas",""],["Vinagre rojo",3,"cdas",""],["Cerveza rubia",120,"ml","½ taza"],["Comino",1,"cdita",""],["Orégano seco",1,"cda",""],["Aceite vegetal",4,"cdas",""]]},
+      {g:"Para el pollo",items:[["Presas de pollo",1,"un","≈2.5 kg"],["Pasta de ají panca",6,"cdas",""],["Ajo molido",4,"cdas",""],["Salsa de soya",3,"cdas",""],["Vinagre rojo",3,"cdas",""],["Cerveza rubia",120,"ml","½ taza"],["Comino",1,"cdita",""],["Orégano seco",1,"cda",""],["Aceite vegetal",4,"cdas",""]]},
       {g:"Ají de huacatay",items:[["Ajíes amarillos frescos",4,"un",""],["Cebolla roja",1,"un","grande"],["Dientes de ajo",2,"un",""],["Hojas de huacatay",1,"taza","fresco"],["Aceite vegetal",4,"cdas",""],["Sal, pimienta","al gusto","",""]]},
       {g:"Guarnición",items:[["Papas blancas medianas",6,"un","sancochadas"],["Lechuga, repollo, tomate","c/n","","para ensalada"],["Limones",2,"un",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
@@ -2495,7 +2537,7 @@ const RECETAS_DB = {
     desc:"No es ceviche de verdad, es su primo criollo: pollo guisado en ají amarillo, cerveza y limón. Cremoso y adictivo.",
     color:"#1E8449",
     ingredientes:[
-      {g:"El pollo",items:[["Piernas de pollo",2,"un",""],["Alas de pollo",2,"un",""],["Muslos de pollo",2,"un",""]]},
+      {g:"El pollo",items:[["Presas de pollo",2,"un",""],["Presas de pollo",2,"un",""],["Presas de pollo",2,"un",""]]},
       {g:"El guiso",items:[["Cebolla picada",100,"g",""],["Ajo en pasta",40,"g",""],["Pasta de ají amarillo",100,"g",""],["Cerveza rubia",150,"ml",""],["Caldo de pollo",250,"ml",""],["Jugo de limones",5,"un",""],["Sal, pimienta, comino","al gusto","",""],["Aceite de oliva",100,"ml",""]]}
     ],
     pasos:[
@@ -2562,7 +2604,7 @@ const RECETAS_DB = {
     desc:"Pollo en salsa cremosa de mostaza, crema y hierbas. Rápido, elegante y muy sabroso.",
     color:"#B7950B",
     ingredientes:[
-      {g:"El pollo",items:[["Presas de pollo o pechugas",4,"un",""],["Sal, pimienta, orégano","al gusto","",""]]},
+      {g:"El pollo",items:[["Presas de pollo",4,"un",""],["Sal, pimienta, orégano","al gusto","",""]]},
       {g:"La salsa de mostaza",items:[["Mostaza Dijon",3,"cdas",""],["Crema de leche",200,"ml",""],["Cebolla mediana picada",1,"un",""],["Ajo picado",3,"dientes",""],["Vino blanco seco",100,"ml",""],["Tomillo fresco","c/n","",""],["Mantequilla",1,"cda",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
@@ -2743,7 +2785,7 @@ const RECETAS_DB = {
     color:"#85929E",
     ingredientes:[
       {g:"La pasta",items:[["Pasta a gusto (penne o fettuccini)",400,"g",""]]},
-      {g:"La salsa blanca",items:[["Pechuga de pollo cocida",400,"g","desmenuzada"],["Champiñones",300,"g","en láminas"],["Mantequilla",50,"g",""],["Harina sin preparar",3,"cdas",""],["Leche tibia",500,"ml",""],["Crema de leche",100,"ml",""],["Queso parmesano",100,"g","rallado"],["Nuez moscada","1 pizca","",""],["Ajo",2,"dientes",""],["Sal, pimienta","al gusto","",""]]}
+      {g:"La salsa blanca",items:[["Pechuga de pollo (pre-cocida)",400,"g","desmenuzada"],["Champiñones",300,"g","en láminas"],["Mantequilla",50,"g",""],["Harina sin preparar",3,"cdas",""],["Leche tibia",500,"ml",""],["Crema de leche",100,"ml",""],["Queso parmesano",100,"g","rallado"],["Nuez moscada","1 pizca","",""],["Ajo",2,"dientes",""],["Sal, pimienta","al gusto","",""]]}
     ],
     pasos:[
       {t:"Cocinar la pasta",d:"En agua con sal abundante, cocinar la pasta al dente según instrucciones del paquete. Escurrir y reservar con un chorrito de aceite."},
@@ -2807,7 +2849,7 @@ const RECETAS_DB = {
     desc:"Pollo crocante rebozado en chuño, marinado en sillao y pisco. Servido con la irresistible salsa chijaukay de anís estrella.",
     color:"#1A5276",
     ingredientes:[
-      {g:"El pollo",items:[["Muslos de pollo deshuesados",500,"g","en filetes"],["Chuño o almidón de papa",150,"g","para rebozar"],["Aceite para freír","c/n","",""],["Kion en láminas",20,"g","para la cama de vapor"]]},
+      {g:"El pollo",items:[["Presas de pollo",500,"g","en filetes"],["Chuño o almidón de papa",150,"g","para rebozar"],["Aceite para freír","c/n","",""],["Kion en láminas",20,"g","para la cama de vapor"]]},
       {g:"El marinado",items:[["Sillao",30,"g",""],["Salsa de ostión",30,"g",""],["Pisco",15,"g",""],["Kion en trozos",15,"g",""],["Pimienta blanca",2,"g",""],["Anís estrella",2,"g",""],["Sal",3,"g",""]]},
       {g:"Salsa chijaukay",items:[["Caldo de pollo",240,"g",""],["Sillao",30,"g",""],["Salsa de ostión",30,"g",""],["Azúcar rubia",15,"g",""],["Pisco",15,"g",""],["Chuño disuelto en agua",10,"g",""],["Anís estrella",1,"g",""],["Sal",3,"g",""]]}
     ],
@@ -2857,7 +2899,7 @@ const RECETAS_DB = {
     desc:"Pollo marinado en salsa BBQ casera con miel, mostaza y paprika ahumada. Horneado hasta caramelizado y jugoso.",
     color:"#922B21",
     ingredientes:[
-      {g:"El pollo",items:[["Pollo entero en presas",1,"un","≈2 kg"],["Sal, pimienta, paprika, ajo en polvo","al gusto","",""]]},
+      {g:"El pollo",items:[["Presas de pollo",1,"un","≈2 kg"],["Sal, pimienta, paprika, ajo en polvo","al gusto","",""]]},
       {g:"La salsa BBQ casera",items:[["Ketchup",120,"ml","½ taza"],["Miel",3,"cdas",""],["Mostaza",2,"cdas",""],["Salsa inglesa",2,"cdas",""],["Vinagre de manzana",1,"cda",""],["Azúcar morena",1,"cda",""],["Paprika ahumada",1,"cdita",""],["Ajo en polvo, pimienta negra","al gusto","",""]]},
       {g:"Para servir",items:[["Papas al horno","c/n","","con cáscara"],["Ensalada fresca","c/n","",""]]}
     ],
@@ -2965,7 +3007,7 @@ const RECETAS_DB = {
     desc:"Pollo marinado en ají panca y especias. Horneado hasta dorado y jugoso. Con puré sedoso de papa.",
     color:"#B5651D",
     ingredientes:[
-      {g:"El pollo (marinado)",items:[["Piernas/muslos de pollo",500,"g","sellados al vacío, ya marinados"]]},
+      {g:"El pollo (marinado)",items:[["Presas de pollo",500,"g","sellados al vacío, ya marinados"]]},
       {g:"El puré",items:[["Papa blanca",500,"g","entera cruda"],["Leche evaporada",200,"ml","caja"],["Mantequilla",60,"g","ziplock"],["Sal, pimienta, nuez moscada","al gusto","",""],["Arroz blanco o Puré de papa","c/n","","según preferencia — lo preparas en casa"]]}
     ],
     pasos:[
@@ -2982,7 +3024,7 @@ const RECETAS_DB = {
     desc:"Presas de pollo selladas en salsa cremosa de champiñones frescos, vino blanco y ajo.",
     color:"#4E342E",
     ingredientes:[
-      {g:"El pollo",items:[["Piernas/muslos de pollo",500,"g","sellados al vacío"]]},
+      {g:"El pollo",items:[["Presas de pollo",500,"g","sellados al vacío"]]},
       {g:"La salsa",items:[["Champiñones frescos",250,"g","bolsa SECA sin lavar"],["Crema de leche UHT",200,"ml",""],["Vino blanco seco",100,"ml","frasquito"],["Ajo molido","al gusto","",""],["Perejil fresco","al gusto","",""],["Sal, pimienta","al gusto","",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
@@ -2999,7 +3041,7 @@ const RECETAS_DB = {
     desc:"Quinua con pollo en leche de tigre. Choclo, camote, cancha y cebolla encurtida. Estilo cebichería en bowl.",
     color:"#00695C",
     ingredientes:[
-      {g:"La base",items:[["Quinua",100,"g",""],["Pollo en tiras",300,"g","sellado al vacío"]]},
+      {g:"La base",items:[["Quinua",100,"g",""],["Pechuga de pollo en tiras",300,"g","sellado al vacío"]]},
       {g:"La leche de tigre",items:[["Ají amarillo pasta",30,"g",""],["Limones",4,"un","exprimir al momento"],["Culantro fresco",15,"g",""],["Sal, pimienta","al gusto","",""]]},
       {g:"Los toppings",items:[["Choclo desgranado",60,"g",""],["Camote amarillo","c/n","","cocinar al momento"],["Cebolla morada",1,"un",""],["Cancha serrana",30,"g",""]]}
     ],
@@ -3017,7 +3059,7 @@ const RECETAS_DB = {
     desc:"Quinua con pollo en ají panca, camote asado, palta fresca, tomate y cebolla morada.",
     color:"#00695C",
     ingredientes:[
-      {g:"La base",items:[["Quinua",100,"g",""],["Pollo en tiras",300,"g","con ají panca"]]},
+      {g:"La base",items:[["Quinua",100,"g",""],["Pechuga de pollo en tiras",300,"g","con ají panca"]]},
       {g:"Los toppings",items:[["Camote",200,"g","cocinar al momento"],["Palta",1,"un","partir al servir"],["Tomate",1,"un","en cubos"],["Cebolla morada",1,"un",""],["Limones",2,"un",""]]}
     ],
     pasos:[
@@ -3106,7 +3148,7 @@ const RECETAS_DB = {
     utensilios:"Olla mediana con tapa, cuchillo, tabla de cortar, cuchara de palo",
     despensa:"Sal, pimienta, comino, aceite vegetal, agua o caldo",
     ingredientes:[
-      {g:"Proteína",items:[["Pollo entero (trozado en presas)",1,"un","sellado al vacío — sin condimentos"]]},
+      {g:"Proteína",items:[["Presas de pollo",1,"un","sellado al vacío — sin condimentos"]]},
       {g:"Aderezo — frasquito",items:[["Ají panca pasta",40,"g",""],["Vino tinto seco",100,"ml",""]]},
       {g:"Verduras — bolsa kraft",items:[["Zanahoria",1,"un","pelada en rodajas"],["Aceitunas verdes",30,"g","ziplock"]]},
       {g:"Del cliente",items:[["Papa blanca",3,"un","entera cruda"],["Cebolla blanca",1,"un",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
@@ -3243,7 +3285,7 @@ const RECETAS_DB = {
     utensilios:"Olla grande para pasta, sartén o olla mediana, colador, cuchillo",
     despensa:"Sal, pimienta, comino, aceite vegetal, agua",
     ingredientes:[
-      {g:"Proteína",items:[["Pollo entero (trozado en presas)",1,"un","sellado al vacío"]]},
+      {g:"Proteína",items:[["Presas de pollo",1,"un","sellado al vacío"]]},
       {g:"Salsa — frasquito",items:[["Pasta de tomate",40,"g",""],["Vino tinto seco",100,"ml",""],["Hongo seco",20,"g","ziplock"]]},
       {g:"Del cliente",items:[["Spaghetti",300,"g",""],["Tomates frescos",4,"un","licuar"],["Cebolla",1,"un",""],["Ajo","al gusto","",""],["Laurel",1,"hoja",""]]}
     ],

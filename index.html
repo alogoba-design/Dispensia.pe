@@ -241,7 +241,29 @@ footer{background:var(--tx);padding:36px 32px 22px;}
 .toast{position:fixed;bottom:22px;right:22px;background:var(--v);color:#fff;padding:11px 18px;border-radius:12px;font-size:13px;font-weight:500;z-index:999;transform:translateY(70px);opacity:0;transition:all .3s;}
 .toast.show{transform:translateY(0);opacity:1;}
 
-  </style>
+  /* ── Google Places Autocomplete fixes ── */
+  .pac-container {
+    z-index: 99999 !important;
+    border-radius: 10px !important;
+    border: 1.5px solid var(--bd) !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,.12) !important;
+    font-family: 'Poppins', sans-serif !important;
+    margin-top: 4px !important;
+  }
+  .pac-item {
+    padding: 8px 14px !important;
+    font-size: 12px !important;
+    cursor: pointer !important;
+    border-top: 1px solid #F5F5F5 !important;
+    line-height: 1.5 !important;
+  }
+  .pac-item:hover { background: #F0F9F1 !important; }
+  .pac-item-query { font-size: 13px !important; color: #222 !important; }
+  .pac-matched { color: var(--v) !important; font-weight: 700 !important; }
+  /* Prevent Google from breaking the input layout */
+  #f-dir { position: relative !important; }
+</style>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB0tvCIaBjNbaFkx3d_iU2_nNeRZRa9_-I&libraries=places&language=es&region=PE" async defer onload="initGooglePlaces()"></script>
 </head>
 <body>
 
@@ -404,13 +426,6 @@ footer{background:var(--tx);padding:36px 32px 22px;}
         <div class="frow">
           <div class="fg"><label>Nombre completo</label><input type="text" id="f-nombre" placeholder="María García"></div>
           <div class="fg">
-            <label>DNI <span style="font-size:10px;color:#AAA;font-weight:400;"></span></label>
-            <input type="text" id="f-dni" placeholder="12345678" maxlength="8"
-              oninput="this.value=this.value.replace(/[^0-9]/g,'')" style="letter-spacing:1px;">
-          </div>
-        </div>
-        <div class="frow">
-          <div class="fg">
             <label>WhatsApp</label>
             <input type="tel" id="f-tel" placeholder="997 112 625" maxlength="9"
               oninput="this.value=this.value.replace(/[^0-9]/g,'');validarTel(this)"
@@ -421,9 +436,11 @@ footer{background:var(--tx);padding:36px 32px 22px;}
           </div>
         </div>
         <div class="fg"><label>Email</label><input type="email" id="f-email" placeholder="tu@email.com"></div>
-        <div class="fg">
+        <div class="fg" style="position:relative;">
           <label>Dirección de entrega</label>
-          <input type="text" id="f-dir" placeholder="Ej: Av. Bolognesi 234, Dpto 5" autocomplete="street-address">
+          <input type="text" id="f-dir" placeholder="Ej: Av. Bolognesi 234"
+            autocomplete="off">
+          <span id="dir-status" style="font-size:11px;margin-top:4px;display:none;"></span>
         </div>
         <div class="frow">
           <div class="fg"><label>Distrito</label>
@@ -728,12 +745,32 @@ function renderPopupLeft(){
   const fijosActivos = fijosIDs.length === 3
     ? fijosIDs.map(id => todosMap[id] || m.fijos.find(p=>p.id===id) || {e:'🍽️',n:id,t:''})
     : m.fijos.slice(0, nFijos);
-  const fijosHTML=fijosActivos.map(p=>`
-    <div class="dia-row">
+  const PRIO_LAND = {
+    1:['Ceviche de Pollo','Bowl Acevichado de Pollo','Locro con Pollo a la Plancha','Locro con Bistec',
+       'Locro de Zapallo','Pollo con Champiñones a la Crema','Ensalada de Atún Fit',
+       'Chijaukay','Arroz Chaufa Carnívoro','Piña Chicken Bowl','Arroz con Pollo','Ají de Gallina Cremoso'],
+    2:['Estofado de Pollo','Estofado de Res','Estofado Criollo','Lentejas Guisadas con Pollo',
+       'Lomo Saltado de Res','Pollo Saltado','Tallarines Rojos con Pollo','Tallarines Rojos con Carne Molida',
+       'Tallarines Verdes + Bistec','Tallarines Verdes + Milanesa','Risotto con Pollo','Teriyaki Bowl',
+       'Picante de Carne Criollo','Milanesa de Pollo + Quinua','Pollo a la Mostaza'],
+    3:['Seco de Res','Seco de Pollo Norteño','Adobo de Chancho','Pollo BBQ',
+       'Pollo al Horno Criollo','Pollo al Horno + Puré','Fettuccini a la Huancaína',
+       'Spaghetti Ragú Bolognese','Pasta en Salsa Blanca','Tonkatsu']
+  };
+  const PRIO_LAND_MAP = {};
+  Object.entries(PRIO_LAND).forEach(([pr,arr])=>arr.forEach(n=>{PRIO_LAND_MAP[n]=parseInt(pr);}));
+  const PRIO_LABEL = {1:'Consumir primero',2:'A mitad de semana',3:'Al final de la semana'};
+  const PRIO_COLOR = {1:'#E53935',2:'#F5B93A',3:'#0F5D2E'};
+  const fijosHTML=fijosActivos.map(p=>{
+    const pr=PRIO_LAND_MAP[p.n]||2;
+    return `<div class="dia-row" style="position:relative;">
       <span class="dia-ilu">${p.e}</span>
-      <div class="dia-info"><p class="dia-nm">${p.n}</p><p class="dia-tp">${p.t}</p></div>
+      <div class="dia-info"><p class="dia-nm">${p.n}</p>
+        <p class="dia-tp" style="color:${PRIO_COLOR[pr]};font-weight:600;font-size:10px;">⏱ ${PRIO_LABEL[pr]}</p>
+      </div>
       <span class="badge-f">Incluido</span>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   let adHTML='';
   if(nAd>0){
@@ -901,6 +938,74 @@ const DISTRITOS_MAPA = {
   'breña':'Breña','jesus maria':'Jesús María','jesús maría':'Jesús María'
 };
 
+function initGooglePlaces(){
+  const input = document.getElementById('f-dir');
+  if(!input || !window.google) return;
+
+  // Prevent Google from injecting inline styles that break the input
+  const observer = new MutationObserver(()=>{
+    if(input.style.width) input.style.width = '';
+    if(input.style.position && input.style.position !== 'relative') input.style.position = '';
+  });
+  observer.observe(input, { attributes: true, attributeFilter: ['style'] });
+
+  const autocomplete = new google.maps.places.Autocomplete(input, {
+    types: ['address'],
+    componentRestrictions: { country: 'pe' },
+    fields: ['address_components','formatted_address'],
+    bounds: new google.maps.LatLngBounds(
+      new google.maps.LatLng(-12.15, -77.15),
+      new google.maps.LatLng(-11.95, -76.95)
+    ),
+    strictBounds: false,
+  });
+
+  autocomplete.addListener('place_changed', function(){
+    const place = autocomplete.getPlace();
+    if(!place || !place.address_components){
+      document.getElementById('dir-status').innerHTML =
+        '⚠️ No encontramos esa dirección. Puedes continuar igual.';
+      document.getElementById('dir-status').style.color = '#856404';
+      document.getElementById('dir-status').style.display = 'block';
+      return;
+    }
+
+    // Extraer calle + número de los componentes
+    let streetName = '', streetNum = '', distrito = '';
+    for(const comp of place.address_components){
+      const types = comp.types;
+      if(types.includes('route'))                streetName = comp.long_name;
+      if(types.includes('street_number'))        streetNum  = comp.long_name;
+      if(types.includes('sublocality_level_1') ||
+         types.includes('sublocality') ||
+         types.includes('locality'))             distrito   = comp.long_name.toLowerCase().trim();
+    }
+
+    // Armar dirección limpia con número de calle
+    const dirLimpia = streetNum ? `${streetName} ${streetNum}` : streetName || place.formatted_address.split(',')[0];
+    input.value = dirLimpia;
+    input.style.borderColor = 'var(--v)';
+
+    // Auto-seleccionar distrito
+    const distritoMatch = DISTRITOS_MAPA[distrito];
+    const statusEl = document.getElementById('dir-status');
+    if(distritoMatch){
+      const sel = document.getElementById('f-dist');
+      for(let i=0; i<sel.options.length; i++){
+        if(sel.options[i].text === distritoMatch){
+          sel.selectedIndex = i;
+          break;
+        }
+      }
+      statusEl.innerHTML = `✅ Dirección confirmada · Distrito: <strong>${distritoMatch}</strong>`;
+      statusEl.style.color = 'var(--v)';
+    } else {
+      statusEl.innerHTML = '✅ Dirección confirmada. Selecciona tu distrito si es necesario.';
+      statusEl.style.color = 'var(--v)';
+    }
+    statusEl.style.display = 'block';
+  });
+}
 
 function irAPago(){
   const nombre = document.getElementById('f-nombre').value.trim();
@@ -912,10 +1017,6 @@ function irAPago(){
   if(!nombre){
     showToast('⚠️ Ingresa tu nombre completo'); return;
   }
-  const dniVal = document.getElementById('f-dni')?.value||'';
-  if(dniVal && dniVal.length !== 8){
-    showToast('⚠️ El DNI debe tener 8 dígitos'); return;
-  }
   if(!tel || tel.length !== 9 || !tel.startsWith('9')){
     showToast('⚠️ WhatsApp inválido: debe tener 9 dígitos y empezar en 9');
     document.getElementById('f-tel').focus(); return;
@@ -923,7 +1024,7 @@ function irAPago(){
   if(!email || !email.includes('@')){
     showToast('⚠️ Ingresa un email válido'); return;
   }
-  if(!dir){
+  if(!dir || dir.length < 5){
     showToast('⚠️ Ingresa tu dirección de entrega');
     document.getElementById('f-dir').focus(); return;
   }
@@ -944,7 +1045,6 @@ async function confirmarPago(){
     id:'DIS-'+Date.now().toString().slice(-6),
     fecha:new Date().toLocaleString('es-PE',{timeZone:'America/Lima'}),
     nombre:document.getElementById('f-nombre').value,
-    dni:   document.getElementById('f-dni')?.value.trim()||'',
     email:document.getElementById('f-email').value,
     telefono:document.getElementById('f-tel').value,
     direccion:document.getElementById('f-dir').value,
