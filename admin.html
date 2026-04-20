@@ -745,7 +745,7 @@ const PORTAFOLIO = [
   {id:'DIS-03a',n:'Locro con Pollo a la Plancha',      p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:14,c:'Criollo',    t:40},
   {id:'DIS-03b',n:'Locro con Bistec',                  p:'Res cadera',     pp:22.0,pk:0.3,otros:14,c:'Criollo',    t:40},
   {id:'DIS-04', n:'Olluquito con Carne',               p:'Res cadera',     pp:22.0,pk:0.3,otros:9, c:'Criollo',    t:35},
-  {id:'DIS-05', n:'Ají de Gallina',                    p:'Pollo pechuga',  pp:4.5, pk:1.0,otros:15,c:'Criollo',    t:55},
+  {id:'DIS-05', n:'Ají de Gallina Cremoso',                    p:'Pollo pechuga',  pp:4.5, pk:1.0,otros:15,c:'Criollo',    t:55},
   {id:'DIS-07', n:'Picante de Carne Criollo',          p:'Res cadera',     pp:22.0,pk:0.4,otros:10,c:'Criollo',    t:65},
   {id:'DIS-08', n:'Ceviche de Pollo',                  p:'Pollo entero',   pp:4.8, pk:1.0,otros:10,c:'Criollo',    t:30},
   {id:'DIS-09', n:'Estofado Verde de Pollo',           p:'Pollo entero',   pp:4.8, pk:1.0,otros:10,c:'Criollo',    t:50},
@@ -767,18 +767,18 @@ const PORTAFOLIO = [
   {id:'DIS-19b',n:'Tallarines Rojos con Carne Molida', p:'Res molida',     pp:18.0,pk:0.4,otros:10,c:'Pastas',     t:35},
   {id:'DIS-20a',n:'Tallarines Verdes + Bistec',        p:'Res cadera',     pp:22.0,pk:0.5,otros:14,c:'Pastas',     t:35},
   {id:'DIS-20b',n:'Tallarines Verdes + Milanesa',      p:'Pollo milanesa', pp:6.5, pk:0.5,otros:14,c:'Pastas',     t:35},
-  {id:'DIS-21', n:'Fettuccini Huancaína + Lomo',       p:'Res lomo fino',  pp:32.0,pk:0.4,otros:14,c:'Pastas',     t:35},
+  {id:'DIS-21', n:'Fettuccini a la Huancaína',       p:'Res lomo fino',  pp:32.0,pk:0.4,otros:14,c:'Pastas',     t:35},
   {id:'DIS-22', n:'Pasta en Salsa Blanca',             p:'Pollo milanesa', pp:6.5, pk:0.4,otros:10,c:'Pastas',     t:30},
   {id:'DIS-24', n:'Risotto con Pollo',                 p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:13,c:'Pastas',     t:60},
   // Al Horno
-  {id:'DIS-25', n:'Pollo al Horno Criollo + Ens. Rusa',p:'Pollo presa',   pp:4.0, pk:0.8,otros:12,c:'Al Horno',   t:90},
+  {id:'DIS-25', n:'Pollo al Horno Criollo',p:'Pollo presa',   pp:4.0, pk:0.8,otros:12,c:'Al Horno',   t:90},
   {id:'DIS-26', n:'Pollo al Horno + Puré',             p:'Pollo entero',   pp:4.8, pk:1.0,otros:11,c:'Al Horno',   t:50},
-  {id:'DIS-27', n:'Pollo BBQ con Papas',               p:'Pollo presa',    pp:4.0, pk:0.7,otros:11,c:'Al Horno',   t:50},
+  {id:'DIS-27', n:'Pollo BBQ',               p:'Pollo presa',    pp:4.0, pk:0.7,otros:11,c:'Al Horno',   t:50},
   {id:'DIS-39', n:'Pollo con Champiñones a la Crema',  p:'Pollo presa',    pp:4.0, pk:0.7,otros:13,c:'Al Horno',   t:35},
   // Fusión
   {id:'DIS-28', n:'Cerdo Agridulce Crocante',          p:'Cerdo bondiola', pp:18.0,pk:0.5,otros:12,c:'Fusión',     t:40},
   {id:'DIS-29', n:'Chijaukay',                         p:'Pollo pechuga',  pp:4.5, pk:0.6,otros:10,c:'Fusión',     t:20},
-  {id:'DIS-30', n:'Tonkatsu con Ensalada Nikkei',      p:'Cerdo lomo',     pp:20.0,pk:0.5,otros:12,c:'Fusión',     t:30},
+  {id:'DIS-30', n:'Tonkatsu',      p:'Cerdo lomo',     pp:20.0,pk:0.5,otros:12,c:'Fusión',     t:30},
   {id:'DIS-31', n:'Lomo de Cerdo al Curry Cremoso',    p:'Cerdo lomo',     pp:20.0,pk:0.5,otros:11,c:'Fusión',     t:35},
   // Bowls & Fit
   {id:'DIS-32', n:'Bowl Acevichado de Pollo',          p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:12,c:'Bowls & Fit',t:30},
@@ -1683,7 +1683,8 @@ function renderPlatosActivos(){
         </div>
       </div>
       <button onclick="${canToggle?`togglePlato('${p.id}')`:''}"
-        title="${isFijo?'No se puede desactivar un plato fijo':''}"
+        ${isFijo?"disabled":""}
+        title="${isFijo?'Plato fijo — cambia en Menús de la Semana':''}"
         style="padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0;
           border:1px solid ${isOff?'#0F5D2E':isFijo?'#DDD':'#E53935'};
           background:${isOff?'#E8F5EE':isFijo?'#F5F5F5':'#FFF'};
@@ -1930,6 +1931,9 @@ function guardarFijosMenu() {
 
   cerrarFijosModal();
   renderEditorFijos();
+  renderPlatosActivos();
+  renderEditorFijos();
+  renderPlatosActivos();
   showToast('✅ Fijos actualizados y sincronizados');
 }
 
@@ -2125,14 +2129,14 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"La carne",items:[["Bondiola de cerdo",1000,"g","en presas"]]},
       {g:"El adobo",items:[["Aceite de oliva",100,"ml",""],["Cebolla picada",150,"g",""],["Ajo molido",50,"g",""],["Ají panca",90,"g",""],["Ají amarillo",60,"g",""],["Orégano seco",1,"g",""],["Hojas de laurel",2,"un",""],["Chicha de jora",300,"ml",""],["Caldo de pollo","c/n","",""],["Sal, pimienta, comino","al gusto","",""]]},
-      {g:"Para servir",items:[["Camote sancochado",400,"g",""],["Yuca sancochada",300,"g",""],["Cebolla roja",60,"g","encurtida"]]}
+      {g:"Para servir",items:[["Camote sancochado",400,"g",""],["Yuca sancochada",300,"g",""],["Cebolla roja",60,"g","encurtida"],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Sellar el cerdo",d:"En olla con aceite, sellar las presas sazonadas con sal, pimienta y comino. Dorar bien por ambos lados. Reservar."},
       {t:"El aderezo",d:"Misma olla: aceite, cebolla, ajo molido. Sazonar y cocinar 5 min. Agregar ají amarillo, ají panca y laurel. 10 min más."},
       {t:"Cocción lenta",d:"Regresar el cerdo. Cubrir con chicha de jora y caldo. Tapar y cocinar despacio 40 min a fuego bajo."},
       {t:"El toque final",d:"3 minutos antes de terminar, agregar las cebollas en gajos para que queden ligeramente cocidas con textura."},
-      {t:"Servir",d:"Con yuca y camote sancochados. Decorar con cebolla roja encurtida. El caldo del adobo es un tesoro."}
+      {t:"Servir",d:"Servir con arroz blanco graneado. Con yuca y camote sancochados. Decorar con cebolla roja encurtida. El caldo del adobo es un tesoro."}
     ]
   },
   "Pollada Peruana":{
@@ -2142,14 +2146,14 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"Para el pollo",items:[["Pollo entero en presas",1,"un","≈2.5 kg"],["Pasta de ají panca",6,"cdas",""],["Ajo molido",4,"cdas",""],["Salsa de soya",3,"cdas",""],["Vinagre rojo",3,"cdas",""],["Cerveza rubia",120,"ml","½ taza"],["Comino",1,"cdita",""],["Orégano seco",1,"cda",""],["Aceite vegetal",4,"cdas",""]]},
       {g:"Ají de huacatay",items:[["Ajíes amarillos frescos",4,"un",""],["Cebolla roja",1,"un","grande"],["Dientes de ajo",2,"un",""],["Hojas de huacatay",1,"taza","fresco"],["Aceite vegetal",4,"cdas",""],["Sal, pimienta","al gusto","",""]]},
-      {g:"Guarnición",items:[["Papas blancas medianas",6,"un","sancochadas"],["Lechuga, repollo, tomate","c/n","","para ensalada"],["Limones",2,"un",""]]}
+      {g:"Guarnición",items:[["Papas blancas medianas",6,"un","sancochadas"],["Lechuga, repollo, tomate","c/n","","para ensalada"],["Limones",2,"un",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Marinar el pollo",d:"Mezclar todos los ingredientes del marinado. Cubrir bien las presas. Dejar reposar mínimo 2 horas (idealmente toda la noche en el refrigerador)."},
       {t:"El ají de huacatay",d:"Licuar ajíes amarillos, cebolla, ajo, hojas de huacatay fresco, aceite, sal y pimienta hasta salsa cremosa y verde."},
       {t:"Dorar en plancha",d:"Sartén o plancha a fuego medio-alto con un poco de aceite. Dorar las presas por ambos lados hasta cocidas y bien doradas."},
       {t:"La guarnición",d:"Sancochar las papas hasta tiernas. Preparar ensalada fresca con limón, aceite, sal y pimienta."},
-      {t:"Servir",d:"Pollo dorado con papas, ensalada y un generoso ají de huacatay al costado para dipear."}
+      {t:"Servir",d:"Servir con arroz blanco graneado. Pollo dorado con papas, ensalada y un generoso ají de huacatay al costado para dipear."}
     ]
   },
   "Pollo al Horno Criollo":{
@@ -2158,7 +2162,7 @@ const RECETAS_DB = {
     color:"#B5651D",
     ingredientes:[
       {g:"Marinado",items:[["Presas de pollo",5,"un","piernas y encuentros"],["Pasta de ají panca",3,"cdas",""],["Pasta de ají amarillo",1,"cda",""],["Sillao",60,"ml","¼ taza"],["Cerveza rubia",60,"ml","¼ taza"],["Mostaza",1,"cda",""],["Vinagre tinto",1,"cda",""],["Ajo molido",1,"cdita",""],["Orégano, comino, sal, pimienta","al gusto","",""]]},
-      {g:"Ensalada Rusa",items:[["Papas blancas cocidas",2,"un","en cubos"],["Zanahorias cocidas",2,"un","en cubos"],["Betarraga cocida",1,"un","en cubos"],["Vainitas cocidas",150,"g","picadas"],["Arvejitas cocidas",150,"g",""],["Choclo desgranado cocido",1,"un",""],["Mayonesa",120,"ml","½ taza"],["Limón",1,"un","el jugo"],["Perejil fresco","al gusto","","picado"]]}
+      {g:"Ensalada Rusa",items:[["Papas blancas cocidas",2,"un","en cubos"],["Zanahorias cocidas",2,"un","en cubos"],["Betarraga cocida",1,"un","en cubos"],["Vainitas cocidas",150,"g","picadas"],["Arvejitas cocidas",150,"g",""],["Choclo desgranado cocido",1,"un",""],["Mayonesa",120,"ml","½ taza"],["Limón",1,"un","el jugo"],["Perejil fresco","al gusto","","picado"],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Marinar el pollo",d:"Mezclar todos los ingredientes del marinado. Cubrir bien las presas. Mínimo 2 horas o toda la noche en frío."},
@@ -2175,7 +2179,7 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"La carne",items:[["Costillas de cerdo",1000,"g",""],["Brazuelo de cerdo",1000,"g","trozado"],["Costilla ahumada",300,"g",""],["Tocino ahumado",150,"g",""]]},
       {g:"Aderezo y líquidos",items:[["Cebollas picadas",2,"un",""],["Ajo picado",80,"g",""],["Ají panca",100,"g",""],["Pasta ají amarillo",50,"g",""],["Pasta de tomate",50,"g",""],["Hojas de laurel",2,"un",""],["Hongo seco",80,"g",""],["Vino tinto",250,"ml",""],["Caldo de pollo",2,"lt",""],["Tomates licuados",8,"un",""]]},
-      {g:"Guarnición",items:[["Papa blanca en cubos",500,"g",""],["Alverjitas",100,"g",""],["Zanahorias picadas",2,"un",""],["Pimiento en tiras",80,"g",""]]}
+      {g:"Guarnición",items:[["Papa blanca en cubos",500,"g",""],["Alverjitas",100,"g",""],["Zanahorias picadas",2,"un",""],["Pimiento en tiras",80,"g",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Sellar el cerdo",d:"Aceite en olla a fuego alto. Dorar costillas y brazuelo sazonados con sal y pimienta. Bien dorados por todos lados. Reservar."},
@@ -2193,7 +2197,7 @@ const RECETAS_DB = {
       {g:"La carne",items:[["Res cadera en trozos",800,"g",""]]},
       {g:"Aderezo",items:[["Cebollas picadas",2,"un",""],["Ajo molido",6,"dientes",""],["Pasta de ají panca",2,"cdas",""],["Pasta de ají amarillo",1,"cda",""],["Pasta de tomate",2,"cdas",""],["Hojas de laurel",2,"un",""],["Sal, pimienta, comino, orégano","al gusto","",""]]},
       {g:"Líquidos",items:[["Cerveza negra",330,"ml","1 botella"],["Vino tinto",150,"ml",""],["Tomates licuados",6,"un",""],["Caldo de res","c/n","",""]]},
-      {g:"Guarnición",items:[["Papa blanca en cubos",400,"g",""],["Choclo desgranado","c/n","",""]]}
+      {g:"Guarnición",items:[["Papa blanca en cubos",400,"g",""],["Choclo desgranado","c/n","",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Sellar la res",d:"Aceite caliente en olla. Salpimentar la carne. Sellar por todos lados hasta bien dorada y caramelizada. Retirar y reservar."},
@@ -2226,7 +2230,7 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"Pollo y arroz",items:[["Presas de pollo",4,"un",""],["Arroz extra añejo",2,"tazas",""],["Chicha de jora o cerveza",1,"taza",""]]},
       {g:"La base verde",items:[["Cebolla roja",1,"un",""],["Ajo",6,"dientes",""],["Ají amarillo",1,"un",""],["Culantro fresco",1,"atado","para licuar"],["Espinaca fresca",1,"taza",""],["Sal, pimienta, comino, palillo","al gusto","",""]]},
-      {g:"Extras",items:[["Zanahoria en cubos",1,"un",""],["Alverjitas",50,"g",""],["Choclo desgranado","c/n","",""],["Caldo de pollo",2,"tazas",""]]}
+      {g:"Extras",items:[["Zanahoria en cubos",1,"un",""],["Alverjitas",50,"g",""],["Choclo desgranado","c/n","",""],["Caldo de pollo",2,"tazas",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Dorar el pollo",d:"Sellar las presas de pollo con sal y pimienta en aceite caliente. Dorar bien por ambos lados. Reservar."},
@@ -2260,14 +2264,14 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"La carne",items:[["Res cadera o asado en trozos",600,"g",""]]},
       {g:"El aderezo picante",items:[["Cebolla roja picada",1,"un",""],["Ajo molido",4,"dientes",""],["Ajíes colorados o mirasol",3,"un","remojados"],["Ají panca",2,"cdas",""],["Pasta de tomate",1,"cda",""],["Sal, pimienta, comino, orégano","al gusto","",""]]},
-      {g:"Guarnición",items:[["Papa blanca en cubos",400,"g",""],["Choclo desgranado","c/n","",""],["Caldo de res",2,"tazas",""]]}
+      {g:"Guarnición",items:[["Papa blanca en cubos",400,"g",""],["Choclo desgranado","c/n","",""],["Caldo de res",2,"tazas",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Sellar la carne",d:"Aceite muy caliente en olla. Sellar los trozos de res sazonados por todos lados. Dorar bien para capturar el sabor. Retirar."},
       {t:"Los ajíes",d:"Remojar los ajíes colorados y mirasol en agua caliente 15 min. Escurrir y licuar con un poco del caldo hasta pasta suave."},
       {t:"El aderezo picante",d:"Cebolla, ajo, ají panca, ajíes licuados y pasta de tomate. Cocinar 8 min hasta que el aderezo esté bien integrado y fragante."},
       {t:"Guisar lento",d:"Regresar la carne con el caldo. Tapar y cocinar 30 min a fuego bajo hasta que la res esté tierna."},
-      {t:"Terminar",d:"Agregar papa en cubos y choclo. Cocinar 15 min más. Rectificar el nivel de picante y la sazón antes de servir."}
+      {t:"Terminar",d:"Servir con arroz blanco graneado. Agregar papa en cubos y choclo. Cocinar 15 min más. Rectificar el nivel de picante y la sazón antes de servir."}
     ]
   },
   "Pollo a la Mostaza":{
@@ -2276,7 +2280,7 @@ const RECETAS_DB = {
     color:"#B7950B",
     ingredientes:[
       {g:"El pollo",items:[["Presas de pollo o pechugas",4,"un",""],["Sal, pimienta, orégano","al gusto","",""]]},
-      {g:"La salsa de mostaza",items:[["Mostaza Dijon",3,"cdas",""],["Crema de leche",200,"ml",""],["Cebolla mediana picada",1,"un",""],["Ajo picado",3,"dientes",""],["Vino blanco seco",100,"ml",""],["Tomillo fresco","c/n","",""],["Mantequilla",1,"cda",""]]}
+      {g:"La salsa de mostaza",items:[["Mostaza Dijon",3,"cdas",""],["Crema de leche",200,"ml",""],["Cebolla mediana picada",1,"un",""],["Ajo picado",3,"dientes",""],["Vino blanco seco",100,"ml",""],["Tomillo fresco","c/n","",""],["Mantequilla",1,"cda",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Dorar el pollo",d:"Sellar las presas sazonadas en mantequilla y aceite hasta bien doradas y con color. Reservar."},
@@ -2293,14 +2297,14 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"Albóndigas",items:[["Res molida",500,"g",""],["Huevo",1,"un",""],["Pan rallado",30,"g",""],["Ajo molido",1,"cda",""],["Cebolla rallada",60,"g","¼ cebolla"],["Sal, pimienta, comino, orégano","al gusto","",""]]},
       {g:"Salsa criolla",items:[["Tomates maduros",4,"un",""],["Cebolla roja",1,"un",""],["Ajo",4,"dientes",""],["Ají panca",2,"cdas",""],["Pasta de tomate",1,"cda",""],["Sal, pimienta, comino","al gusto","",""]]},
-      {g:"Puré de papa",items:[["Papa blanca cocida",500,"g",""],["Leche tibia",100,"ml",""],["Mantequilla",50,"g",""],["Sal","al gusto","",""]]}
+      {g:"Puré de papa",items:[["Papa blanca cocida",500,"g",""],["Leche tibia",100,"ml",""],["Mantequilla",50,"g",""],["Sal","al gusto","",""],["Arroz blanco o Puré de papa","c/n","","según preferencia — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Las albóndigas",d:"Mezclar carne molida con huevo, pan rallado, ajo, cebolla rallada y condimentos. Formar bolas del tamaño de una pelota de golf. Enfriar 15 min en el refrigerador."},
       {t:"Dorarlas",d:"En sartén con aceite caliente, dorar las albóndigas por todos lados. No necesitan estar cocidas por dentro. Reservar."},
       {t:"La salsa",d:"Sofreír cebolla y ajo picados. Agregar ají panca y pasta de tomate. 3 min. Añadir tomates licuados. Sazonar y cocinar 10 min."},
       {t:"Terminar en salsa",d:"Agregar las albóndigas a la salsa. Cocinar a fuego bajo 20 min tapado hasta que estén cocidas y la salsa espese."},
-      {t:"El puré",d:"Aplastar papa cocida con mantequilla y leche tibia hasta cremoso y suave. Sazonar con sal. El puré debe quedar sedoso."}
+      {t:"El puré",d:"Servir con arroz blanco o puré de papa. Aplastar papa cocida con mantequilla y leche tibia hasta cremoso y suave. Sazonar con sal. El puré debe quedar sedoso."}
     ]
   },
   "Tallarines Verdes + Bistec":{
@@ -2391,7 +2395,7 @@ const RECETAS_DB = {
     color:"#1E8449",
     ingredientes:[
       {g:"Las caiguas",items:[["Caiguas grandes y frescas",4,"un",""],["Agua hirviendo y sal","c/n","","para blanquear"]]},
-      {g:"El relleno",items:[["Res molida",500,"g",""],["Cebolla roja",150,"g","picada"],["Tomate sin piel",100,"g","en cubos"],["Ajo",15,"g","molido"],["Pasta de ají panca",30,"g",""],["Pasta de ají amarillo",30,"g",""],["Pasta de tomate",30,"g",""],["Huevos duros picados",2,"un",""],["Aceitunas de botija",9,"un","picadas"],["Orégano","al gusto","",""],["Sal, pimienta, comino","al gusto","",""]]}
+      {g:"El relleno",items:[["Res molida",500,"g",""],["Cebolla roja",150,"g","picada"],["Tomate sin piel",100,"g","en cubos"],["Ajo",15,"g","molido"],["Pasta de ají panca",30,"g",""],["Pasta de ají amarillo",30,"g",""],["Pasta de tomate",30,"g",""],["Huevos duros picados",2,"un",""],["Aceitunas de botija",9,"un","picadas"],["Orégano","al gusto","",""],["Sal, pimienta, comino","al gusto","",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Preparar las caiguas",d:"Cortar por la mitad a lo largo. Con cuchara, retirar con cuidado todas las pepas y venas blancas dejándolas completamente huecas."},
@@ -2505,7 +2509,7 @@ const RECETAS_DB = {
     color:"#CB4335",
     ingredientes:[
       {g:"El cerdo crocante",items:[["Cerdo lomo en cubos",600,"g",""],["Harina sin preparar","c/n","",""],["Huevos",2,"un","batidos"],["Pan panko",150,"g",""],["Aceite para freír","c/n","",""],["Sal, pimienta","al gusto","",""]]},
-      {g:"La salsa agridulce",items:[["Azúcar rubia",80,"g","½ taza"],["Vinagre blanco",80,"ml","½ taza"],["Ketchup",80,"g","½ taza"],["Sillao",1,"cda",""],["Fécula de maíz",1,"cda","disuel. en agua"],["Pimiento rojo y verde en cubos",1,"un","c/u"],["Piña en cubos",120,"g","½ taza"],["Kion rallado",1,"cda",""],["Ajo picado",2,"dientes",""]]}
+      {g:"La salsa agridulce",items:[["Azúcar rubia",80,"g","½ taza"],["Vinagre blanco",80,"ml","½ taza"],["Ketchup",80,"g","½ taza"],["Sillao",1,"cda",""],["Fécula de maíz",1,"cda","disuel. en agua"],["Pimiento rojo y verde en cubos",1,"un","c/u"],["Piña en cubos",120,"g","½ taza"],["Kion rallado",1,"cda",""],["Ajo picado",2,"dientes",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Rebozar y freír",d:"Sazonar cubos de cerdo. Pasar por harina, huevo y panko presionando bien. Freír en aceite caliente a 170°C, 3-4 min hasta dorado y crocante. Escurrir."},
@@ -2608,7 +2612,7 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"La carne",items:[["Res cadera en cubos",400,"g","sellada al vacío"]]},
       {g:"La base verde",items:[["Culantro fresco",30,"g",""],["Chicha de jora",200,"ml","frasquito"],["Ají amarillo pasta",30,"g","frasquito"],["Cebolla blanca",1,"un",""],["Ajo molido",10,"g",""]]},
-      {g:"El guiso",items:[["Arvejas",80,"g",""],["Frejoles",150,"g","remojar noche anterior"],["Papa blanca","c/n","","cruda"],["Sal, pimienta, comino","al gusto","",""]]}
+      {g:"El guiso",items:[["Arvejas",80,"g",""],["Frejoles",150,"g","remojar noche anterior"],["Papa blanca","c/n","","cruda"],["Sal, pimienta, comino","al gusto","",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"La base verde",d:"Licuar culantro con chicha de jora y ají amarillo. Reservar."},
@@ -2626,7 +2630,7 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"El pollo",items:[["Presas de pollo",400,"g","selladas al vacío"]]},
       {g:"Las lentejas",items:[["Lentejas secas",150,"g",""],["Zanahoria",1,"un","en cubos"],["Culantro fresco",15,"g",""]]},
-      {g:"El aderezo",items:[["Cebolla blanca",1,"un",""],["Ajo molido",10,"g",""],["Ají amarillo pasta",30,"g",""],["Ají panca pasta",20,"g",""],["Tomate",1,"un",""],["Sal, pimienta, comino","al gusto","",""]]}
+      {g:"El aderezo",items:[["Cebolla blanca",1,"un",""],["Ajo molido",10,"g",""],["Ají amarillo pasta",30,"g",""],["Ají panca pasta",20,"g",""],["Tomate",1,"un",""],["Sal, pimienta, comino","al gusto","",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Dorar el pollo",d:"Aceite en olla. Sazonar con sal, pimienta y comino. Dorar bien por ambos lados. Reservar."},
@@ -2679,7 +2683,7 @@ const RECETAS_DB = {
     color:"#B5651D",
     ingredientes:[
       {g:"El pollo (marinado)",items:[["Piernas/muslos de pollo",500,"g","sellados al vacío, ya marinados"]]},
-      {g:"El puré",items:[["Papa blanca",500,"g","entera cruda"],["Leche evaporada",200,"ml","caja"],["Mantequilla",60,"g","ziplock"],["Sal, pimienta, nuez moscada","al gusto","",""]]}
+      {g:"El puré",items:[["Papa blanca",500,"g","entera cruda"],["Leche evaporada",200,"ml","caja"],["Mantequilla",60,"g","ziplock"],["Sal, pimienta, nuez moscada","al gusto","",""],["Arroz blanco o Puré de papa","c/n","","según preferencia — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Precalentar el horno",d:"Horno a 180°C. El pollo ya viene marinado — colocar directo en fuente con chorrito de aceite."},
@@ -2687,7 +2691,7 @@ const RECETAS_DB = {
       {t:"Sancochar la papa",d:"Pelar las papas. Cocinar en agua con sal hasta muy tiernas, unos 20 min."},
       {t:"El puré",d:"Escurrir bien. Aplastar mientras están calientes. Agregar mantequilla y mezclar."},
       {t:"La cremosidad",d:"Incorporar leche evaporada tibia poco a poco. Batir hasta sedoso. Sazonar."},
-      {t:"Servir",d:"Pollo dorado con puré cremoso. Bañar con los jugos del horno."}
+      {t:"Servir",d:"Servir con arroz blanco o puré de papa. Pollo dorado con puré cremoso. Bañar con los jugos del horno."}
     ]
   },
   "Pollo con Champiñones a la Crema":{
@@ -2696,7 +2700,7 @@ const RECETAS_DB = {
     color:"#4E342E",
     ingredientes:[
       {g:"El pollo",items:[["Piernas/muslos de pollo",500,"g","sellados al vacío"]]},
-      {g:"La salsa",items:[["Champiñones frescos",250,"g","bolsa SECA sin lavar"],["Crema de leche UHT",200,"ml",""],["Vino blanco seco",100,"ml","frasquito"],["Ajo molido","al gusto","",""],["Perejil fresco","al gusto","",""],["Sal, pimienta","al gusto","",""]]}
+      {g:"La salsa",items:[["Champiñones frescos",250,"g","bolsa SECA sin lavar"],["Crema de leche UHT",200,"ml",""],["Vino blanco seco",100,"ml","frasquito"],["Ajo molido","al gusto","",""],["Perejil fresco","al gusto","",""],["Sal, pimienta","al gusto","",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Sellar el pollo",d:"Aceite en sartén. Sellar las presas por ambos lados hasta doradas. Reservar."},
@@ -2801,7 +2805,7 @@ const RECETAS_DB = {
     color:"#00695C",
     ingredientes:[
       {g:"El pollo glaseado",items:[["Pechuga de pollo en tiras",300,"g","sellada al vacío"],["Sillao",30,"ml","frasquito"],["Miel de abeja",20,"g","ziplock"]]},
-      {g:"El bowl",items:[["Arroz",180,"g",""],["Piña fresca en cubos",150,"g","bolsa kraft"],["Palta",1,"un","partir al servir"],["Tomate",1,"un","en cubos"]]}
+      {g:"El bowl",items:[["Arroz",180,"g",""],["Piña fresca en cubos",150,"g","bolsa kraft"],["Palta",1,"un","partir al servir"],["Tomate",1,"un","en cubos"],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"El arroz",d:"Cocinar el arroz blanco graneado. Reservar caliente."},
@@ -2809,7 +2813,7 @@ const RECETAS_DB = {
       {t:"La piña y el tomate",d:"Cortar la piña en cubos de 2 cm. Cortar el tomate en cubos. No cocinar — van frescos para contrastar con el pollo caliente."},
       {t:"La palta",d:"Partir la palta justo antes de armar el bowl para que no oxide. Cortar en cubos."},
       {t:"Armar el bowl",d:"Arroz como base. Pollo glaseado al centro. Piña, palta y tomate alrededor en secciones. El contraste caliente-fresco es lo que hace a este bowl especial."},
-      {t:"Servir",d:"Inmediatamente. El glaseado del pollo actúa como la salsa del bowl — no necesita aderezo adicional."}
+      {t:"Servir",d:"Servir con arroz blanco graneado. Inmediatamente. El glaseado del pollo actúa como la salsa del bowl — no necesita aderezo adicional."}
     ]
   },
   "Estofado de Pollo":{
@@ -2822,7 +2826,7 @@ const RECETAS_DB = {
       {g:"Proteína",items:[["Pollo entero (trozado en presas)",1,"un","sellado al vacío con sal/pimienta/comino"]]},
       {g:"Aderezo — frasquito",items:[["Ají panca pasta",40,"g",""],["Vino tinto seco",100,"ml",""]]},
       {g:"Verduras — bolsa kraft",items:[["Zanahoria",1,"un","pelada en rodajas"],["Aceitunas verdes",30,"g","ziplock"]]},
-      {g:"Del cliente",items:[["Papa blanca",3,"un","entera cruda"],["Cebolla blanca",1,"un",""]]}
+      {g:"Del cliente",items:[["Papa blanca",3,"un","entera cruda"],["Cebolla blanca",1,"un",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Sellar el pollo",d:"Aceite en olla a fuego medio-alto. Sellar las presas de pollo por todos lados hasta doradas. Retirar y reservar."},
@@ -2842,7 +2846,7 @@ const RECETAS_DB = {
       {g:"Proteína",items:[["Res cadera en cubos",400,"g","sellada al vacío"]]},
       {g:"Aderezo — frasquito",items:[["Ají panca pasta",40,"g",""],["Vino tinto seco",100,"ml",""]]},
       {g:"Verduras — bolsa kraft",items:[["Zanahoria",1,"un","pelada en rodajas"],["Aceitunas verdes",30,"g","ziplock"]]},
-      {g:"Del cliente",items:[["Papa blanca",3,"un","entera cruda"],["Cebolla blanca",1,"un",""]]}
+      {g:"Del cliente",items:[["Papa blanca",3,"un","entera cruda"],["Cebolla blanca",1,"un",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Sellar la res",d:"Aceite MUY caliente en olla. Sazonar res con sal, pimienta y comino. Sellar por todos lados hasta caramelizada. Reservar."},
@@ -2861,7 +2865,7 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"Proteína",items:[["Cerdo bondiola en presas",500,"g","sellado al vacío con sal/pimienta"]]},
       {g:"Salsa — frasquito",items:[["Chicha de jora",200,"ml",""],["Ají panca pasta",60,"g",""],["Ají amarillo pasta",40,"g",""]]},
-      {g:"Del cliente",items:[["Cebolla blanca",1,"un",""],["Camote",2,"un","entero crudo"],["Laurel",2,"hojas",""]]}
+      {g:"Del cliente",items:[["Cebolla blanca",1,"un",""],["Camote",2,"un","entero crudo"],["Laurel",2,"hojas",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
     ],
     pasos:[
       {t:"Sellar el cerdo",d:"Aceite a fuego alto. Sellar las presas de cerdo por todos lados hasta muy doradas. Reservar."},
@@ -2881,13 +2885,13 @@ const RECETAS_DB = {
       {g:"Proteína",items:[["Pollo pechuga",300,"g","sellada al vacío, sazonada"]]},
       {g:"El locro — frasquito",items:[["Ají amarillo pasta",40,"g",""],["Leche evaporada",200,"ml",""],["Queso fresco",80,"g","ziplock"]]},
       {g:"Verduras — bolsa kraft",items:[["Zapallo macre en cubos",400,"g","3×3 cm"]]},
-      {g:"Del cliente",items:[["Papa blanca",2,"un","entera cruda"],["Choclo",1,"un","entero"],["Cebolla blanca",1,"un",""]]}
+      {g:"Del cliente",items:[["Papa blanca",2,"un","entera cruda"],["Choclo",1,"un","entero"],["Cebolla blanca",1,"un",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]},
     ],
     pasos:[
       {t:"El locro",d:"Sofreír cebolla y ajo picados. Agregar ají amarillo del frasquito 2 min. Incorporar zapallo y choclo desgranado. Cubrir con agua y cocinar 15 min hasta muy tierno."},
       {t:"La crema",d:"Agregar leche evaporada y queso fresco desmenuzado. Cocinar 5 min a fuego bajo hasta espesar. Rectificar sal. Agregar papa sancochada en cubos."},
       {t:"El pollo",d:"Sartén o plancha a fuego alto con aceite. Cocinar la pechuga 5-6 min por lado hasta dorada. Reposar 2 min y cortar en tiras."},
-      {t:"Servir",d:"Locro cremoso en el plato con el pollo encima en tiras. El contraste crema-plancha es la clave del plato."}
+      {t:"Servir",d:"Con arroz blanco graneado. Locro cremoso en el plato con el pollo encima en tiras. El contraste crema-plancha es la clave del plato."}
     ]
   },
   "Locro con Bistec":{
@@ -2900,13 +2904,13 @@ const RECETAS_DB = {
       {g:"Proteína",items:[["Bistec de res cadera",250,"g","sellado al vacío, sazonado"]]},
       {g:"El locro — frasquito",items:[["Ají amarillo pasta",40,"g",""],["Leche evaporada",200,"ml",""],["Queso fresco",80,"g","ziplock"]]},
       {g:"Verduras — bolsa kraft",items:[["Zapallo macre en cubos",400,"g","3×3 cm"]]},
-      {g:"Del cliente",items:[["Papa blanca",2,"un","entera cruda"],["Choclo",1,"un","entero"],["Cebolla blanca",1,"un",""]]}
+      {g:"Del cliente",items:[["Papa blanca",2,"un","entera cruda"],["Choclo",1,"un","entero"],["Cebolla blanca",1,"un",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]},
     ],
     pasos:[
       {t:"El locro",d:"Sofreír cebolla y ajo 4 min. Agregar ají amarillo 2 min. Zapallo y choclo. Cubrir con agua y cocinar 15 min hasta muy tierno."},
       {t:"La crema",d:"Leche evaporada y queso fresco. Cocinar 5 min. Rectificar sal. Agregar papa sancochada en cubos."},
       {t:"El bistec",d:"Sartén MUY caliente con aceite. Sazonar con sal y pimienta. Sellar el bistec 2-3 min por lado — debe quedar jugoso por dentro."},
-      {t:"Servir",d:"Locro cremoso con el bistec al costado o encima en tiras. El locro de zapallo pide ese contraste de la carne sellada."}
+      {t:"Servir",d:"Con arroz blanco graneado. Locro cremoso con el bistec al costado o encima en tiras. El locro de zapallo pide ese contraste de la carne sellada."}
     ]
   },
   "Lomo Saltado de Res":{
@@ -3263,7 +3267,14 @@ function buildPDFHTML(pedido, platos, factor, porciones) {
             <div class="section-ing">
               <div class="section-title">Ingredientes</div>
               <div class="porc-badge">Para ${etiquetaPorc}</div>
-              ${(r.utensilios||r.despensa)?`<div style="background:#F0F9F1;border-radius:7px;padding:8px 12px;margin-bottom:8px;font-size:10px;color:#1A5276;">${r.utensilios?'<p style=\"margin:2px 0\"><strong>🍳 Utensilios:</strong> '+r.utensilios+'</p>':''}${r.despensa?'<p style=\"margin:2px 0\"><strong>🧂 Despensa:</strong> '+r.despensa+'</p>':''}</div>`:''}
+              ${(()=>{
+                if(!r.utensilios && !r.despensa) return '';
+                let ut = '<div style="background:#F0F9F1;border-radius:7px;padding:8px 12px;margin-bottom:8px;font-size:10px;color:#1A5276;">';
+                if(r.utensilios) ut += '<p style="margin:2px 0"><strong>🍳 Utensilios:</strong> '+r.utensilios+'</p>';
+                if(r.despensa)   ut += '<p style="margin:2px 0"><strong>🧂 Despensa:</strong> '+r.despensa+'</p>';
+                ut += '</div>';
+                return ut;
+              })()}
               ${ingHTML}
             </div>
             <div class="section-pasos">
