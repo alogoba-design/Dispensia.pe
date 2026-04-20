@@ -241,29 +241,7 @@ footer{background:var(--tx);padding:36px 32px 22px;}
 .toast{position:fixed;bottom:22px;right:22px;background:var(--v);color:#fff;padding:11px 18px;border-radius:12px;font-size:13px;font-weight:500;z-index:999;transform:translateY(70px);opacity:0;transition:all .3s;}
 .toast.show{transform:translateY(0);opacity:1;}
 
-  /* ── Google Places Autocomplete fixes ── */
-  .pac-container {
-    z-index: 99999 !important;
-    border-radius: 10px !important;
-    border: 1.5px solid var(--bd) !important;
-    box-shadow: 0 4px 16px rgba(0,0,0,.12) !important;
-    font-family: 'Poppins', sans-serif !important;
-    margin-top: 4px !important;
-  }
-  .pac-item {
-    padding: 8px 14px !important;
-    font-size: 12px !important;
-    cursor: pointer !important;
-    border-top: 1px solid #F5F5F5 !important;
-    line-height: 1.5 !important;
-  }
-  .pac-item:hover { background: #F0F9F1 !important; }
-  .pac-item-query { font-size: 13px !important; color: #222 !important; }
-  .pac-matched { color: var(--v) !important; font-weight: 700 !important; }
-  /* Prevent Google from breaking the input layout */
-  #f-dir { position: relative !important; }
-</style>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB0tvCIaBjNbaFkx3d_iU2_nNeRZRa9_-I&libraries=places&language=es&region=PE" async defer onload="initGooglePlaces()"></script>
+  </style>
 </head>
 <body>
 
@@ -426,6 +404,13 @@ footer{background:var(--tx);padding:36px 32px 22px;}
         <div class="frow">
           <div class="fg"><label>Nombre completo</label><input type="text" id="f-nombre" placeholder="María García"></div>
           <div class="fg">
+            <label>DNI <span style="font-size:10px;color:#AAA;font-weight:400;">(opcional)</span></label>
+            <input type="text" id="f-dni" placeholder="12345678" maxlength="8"
+              oninput="this.value=this.value.replace(/[^0-9]/g,'')" style="letter-spacing:1px;">
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fg">
             <label>WhatsApp</label>
             <input type="tel" id="f-tel" placeholder="997 112 625" maxlength="9"
               oninput="this.value=this.value.replace(/[^0-9]/g,'');validarTel(this)"
@@ -436,12 +421,7 @@ footer{background:var(--tx);padding:36px 32px 22px;}
           </div>
         </div>
         <div class="fg"><label>Email</label><input type="email" id="f-email" placeholder="tu@email.com"></div>
-        <div class="fg" style="position:relative;">
-          <label>Dirección de entrega</label>
-          <input type="text" id="f-dir" placeholder="Ej: Av. Bolognesi 234"
-            autocomplete="off">
-          <span id="dir-status" style="font-size:11px;margin-top:4px;display:none;"></span>
-        </div>
+        <div class="fg"><label>Dirección de entrega</label><input type="text" id="f-dir" placeholder="Ej: Av. Bolognesi 234, Dpto 5" autocomplete="street-address"></div>
         <div class="frow">
           <div class="fg"><label>Distrito</label>
             <select id="f-dist">
@@ -780,9 +760,12 @@ function renderPopupLeft(){
       <p class="intro-box">Estos son los platos disponibles para completar tu caja esta semana. Marca los que más te llamen la atención — puedes cambiarlos cada semana.</p>
       ${m.elige.filter(p=>!getPlatosDesactivados().includes(p.id||'')).map(p=>{
         const ck=diasElegidos.includes(p.n)?'checked':'';
+        const pr_e=PRIO_LAND_MAP[p.n]||2;
         return `<label class="dia-check">
           <input type="checkbox" name="dadic" value="${p.n}" ${ck} onchange="onDiaChecked(${lim})">
-          <div class="dc-info"><p class="dc-nm">${p.e} ${p.n}</p><p class="dc-tp">${p.t}</p></div>
+          <div class="dc-info"><p class="dc-nm">${p.e} ${p.n}</p>
+            <p class="dc-tp" style="color:${PRIO_COLOR[pr_e]};font-weight:600;font-size:10px;">⏱ ${PRIO_LABEL[pr_e]}</p>
+          </div>
           <span class="badge-e">A elegir</span>
         </label>`;
       }).join('')}
@@ -938,74 +921,6 @@ const DISTRITOS_MAPA = {
   'breña':'Breña','jesus maria':'Jesús María','jesús maría':'Jesús María'
 };
 
-function initGooglePlaces(){
-  const input = document.getElementById('f-dir');
-  if(!input || !window.google) return;
-
-  // Prevent Google from injecting inline styles that break the input
-  const observer = new MutationObserver(()=>{
-    if(input.style.width) input.style.width = '';
-    if(input.style.position && input.style.position !== 'relative') input.style.position = '';
-  });
-  observer.observe(input, { attributes: true, attributeFilter: ['style'] });
-
-  const autocomplete = new google.maps.places.Autocomplete(input, {
-    types: ['address'],
-    componentRestrictions: { country: 'pe' },
-    fields: ['address_components','formatted_address'],
-    bounds: new google.maps.LatLngBounds(
-      new google.maps.LatLng(-12.15, -77.15),
-      new google.maps.LatLng(-11.95, -76.95)
-    ),
-    strictBounds: false,
-  });
-
-  autocomplete.addListener('place_changed', function(){
-    const place = autocomplete.getPlace();
-    if(!place || !place.address_components){
-      document.getElementById('dir-status').innerHTML =
-        '⚠️ No encontramos esa dirección. Puedes continuar igual.';
-      document.getElementById('dir-status').style.color = '#856404';
-      document.getElementById('dir-status').style.display = 'block';
-      return;
-    }
-
-    // Extraer calle + número de los componentes
-    let streetName = '', streetNum = '', distrito = '';
-    for(const comp of place.address_components){
-      const types = comp.types;
-      if(types.includes('route'))                streetName = comp.long_name;
-      if(types.includes('street_number'))        streetNum  = comp.long_name;
-      if(types.includes('sublocality_level_1') ||
-         types.includes('sublocality') ||
-         types.includes('locality'))             distrito   = comp.long_name.toLowerCase().trim();
-    }
-
-    // Armar dirección limpia con número de calle
-    const dirLimpia = streetNum ? `${streetName} ${streetNum}` : streetName || place.formatted_address.split(',')[0];
-    input.value = dirLimpia;
-    input.style.borderColor = 'var(--v)';
-
-    // Auto-seleccionar distrito
-    const distritoMatch = DISTRITOS_MAPA[distrito];
-    const statusEl = document.getElementById('dir-status');
-    if(distritoMatch){
-      const sel = document.getElementById('f-dist');
-      for(let i=0; i<sel.options.length; i++){
-        if(sel.options[i].text === distritoMatch){
-          sel.selectedIndex = i;
-          break;
-        }
-      }
-      statusEl.innerHTML = `✅ Dirección confirmada · Distrito: <strong>${distritoMatch}</strong>`;
-      statusEl.style.color = 'var(--v)';
-    } else {
-      statusEl.innerHTML = '✅ Dirección confirmada. Selecciona tu distrito si es necesario.';
-      statusEl.style.color = 'var(--v)';
-    }
-    statusEl.style.display = 'block';
-  });
-}
 
 function irAPago(){
   const nombre = document.getElementById('f-nombre').value.trim();
@@ -1017,7 +932,9 @@ function irAPago(){
   if(!nombre){
     showToast('⚠️ Ingresa tu nombre completo'); return;
   }
-  if(!tel || tel.length !== 9 || !tel.startsWith('9')){
+  const dniVal=document.getElementById('f-dni')?.value||'';
+  if(dniVal && dniVal.length!==8){ showToast('⚠️ El DNI debe tener 8 dígitos'); return; }
+    if(!tel || tel.length !== 9 || !tel.startsWith('9')){
     showToast('⚠️ WhatsApp inválido: debe tener 9 dígitos y empezar en 9');
     document.getElementById('f-tel').focus(); return;
   }
@@ -1045,6 +962,7 @@ async function confirmarPago(){
     id:'DIS-'+Date.now().toString().slice(-6),
     fecha:new Date().toLocaleString('es-PE',{timeZone:'America/Lima'}),
     nombre:document.getElementById('f-nombre').value,
+    dni:document.getElementById('f-dni')?.value.trim()||'',
     email:document.getElementById('f-email').value,
     telefono:document.getElementById('f-tel').value,
     direccion:document.getElementById('f-dir').value,

@@ -168,7 +168,8 @@ tr:hover td{background:var(--vxl);}
 .pdf-toolbar h3{font-size:15px;font-weight:700;color:#fff;flex:1;}
 .pdf-toolbar-btns{display:flex;gap:8px;}
 .btn-dl{background:var(--am);color:var(--v);border:none;border-radius:9px;padding:8px 16px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
-.btn-close-pdf{background:rgba(255,255,255,.15);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;}
+.btn-close-pdf{background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.5);color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0;}
+.btn-close-pdf:hover{background:rgba(255,255,255,.45);}
 #pdf-preview-frame{width:100%;border:none;min-height:600px;}
 
 
@@ -2162,11 +2163,7 @@ function generarPDFOrdenConsumo(pedidos) {
   });
 
   html += '</body></html>';
-  const win = window.open('','_blank','width=950,height=750');
-  if(!win){ showToast('⚠ Permite ventanas emergentes'); return; }
-  win.document.write(html);
-  win.document.close();
-  win.onload = () => win.print();
+  mostrarViewer('📋 Orden de consumo', html.replace(/<!DOCTYPE.*?<body>/s,'').replace('</body></html>',''));
 }
 
 function generarGuiaProduccion(pedidos) {
@@ -2381,11 +2378,7 @@ function generarGuiaProduccion(pedidos) {
   }
 
   html += '</body></html>';
-  const win = window.open('','_blank','width=1100,height=800');
-  if(!win){ showToast('⚠ Activa ventanas emergentes en el navegador'); return; }
-  win.document.write(html);
-  win.document.close();
-  win.onload = () => win.print();
+  mostrarViewer('🏭 Guía de producción', html.replace(/<!DOCTYPE.*?<body[^>]*>/s,'').replace('</body></html>',''));
 }
 
 // ════════════════════════════════════════════════
@@ -4145,6 +4138,20 @@ pullAllConfig().then(()=>{ renderDashboard(); renderMenuDist(); initSheets(); })
       </div>
     </div>
     <div id="pdf-content" style="padding:0;"></div>
+  </div>
+</div>
+
+<!-- ══ VISOR HTML GENÉRICO ══ -->
+<div class="pdf-overlay" id="html-viewer-overlay">
+  <div class="pdf-container" style="max-width:1000px;">
+    <div class="pdf-toolbar">
+      <h3 id="html-viewer-title">Documento</h3>
+      <div class="pdf-toolbar-btns">
+        <button class="btn-dl" onclick="imprimirViewer()">🖨️ Imprimir</button>
+        <button class="btn-close-pdf" onclick="cerrarViewer()" title="Cerrar">×</button>
+      </div>
+    </div>
+    <div id="html-viewer-content" style="padding:0;overflow-y:auto;max-height:80vh;"></div>
   </div>
 </div>
 
