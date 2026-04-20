@@ -53,7 +53,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--tx);min-h
 @media(min-width:769px){
   .hamburger{display:none;}
   .overlay-mob{display:none;}
-}.overlay-mob{display:none;}}
+}
 /* TABS */
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
@@ -874,7 +874,7 @@ function goTab(id, el) {
   }
   document.querySelectorAll('.tab-panel').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tab-'+id).classList.add('active');
+  document.getElementById('tab-'+id)?.classList.add('active');
   if(el) el.classList.add('active');
   const titles = {dashboard:'Dashboard',pedidos:'Pedidos',semanal:'⚡ Gestión Semanal',calculadora:'Calculadora de compras',menus_semana:'🗓️ Menús de la Semana',portafolio:'Portafolio de platos',precios:'Precios y márgenes'};
   document.getElementById('topbar-title').textContent = titles[id]||id;
@@ -1007,7 +1007,7 @@ function verPedido(id) {
         background:#FFF;color:#E53935;font-weight:600;font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;">
       🗑 Eliminar pedido
     </button>`;
-  document.getElementById('modal-overlay').classList.add('show');
+  document.getElementById('modal-overlay')?.classList.add('show');
 }
 
 function actualizarEstado() {
@@ -1051,7 +1051,7 @@ function eliminarPedido(id){
 async function eliminarPedidoEnSupabase(id){try{await fetch(`https://dnpkobwulscmowkefgeg.supabase.co/rest/v1/pedidos?id=eq.${encodeURIComponent(id)}`,{method:'DELETE',headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRucGtvYnd1bHNjbW93a2VmZ2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzQ4MDYsImV4cCI6MjA5MDcxMDgwNn0.Idj6NSUFYQg44BnLRJa23EXSHZkJG5vz6tfnfCGEIt8','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRucGtvYnd1bHNjbW93a2VmZ2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzQ4MDYsImV4cCI6MjA5MDcxMDgwNn0.Idj6NSUFYQg44BnLRJa23EXSHZkJG5vz6tfnfCGEIt8','Prefer':'return=minimal'}});}catch(e){}}
 function eliminarPedido(id){if(!confirm('¿Eliminar pedido '+id+'?')) return;const arr=getPedidos().filter(p=>p.id!==id);localStorage.setItem('dispensia_pedidos',JSON.stringify(arr));eliminarPedidoEnSupabase(id);cerrarModal();renderAll();showToast('🗑 Pedido eliminado');}
 function guardarObservacion(){if(!pedidoActivo) return;pedidoActivo.observacion=document.getElementById('obs-input')?.value||'';savePedido(pedidoActivo);fetch(`https://dnpkobwulscmowkefgeg.supabase.co/rest/v1/pedidos?id=eq.${encodeURIComponent(pedidoActivo.id)}`,{method:'PATCH',headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRucGtvYnd1bHNjbW93a2VmZ2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzQ4MDYsImV4cCI6MjA5MDcxMDgwNn0.Idj6NSUFYQg44BnLRJa23EXSHZkJG5vz6tfnfCGEIt8','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRucGtvYnd1bHNjbW93a2VmZ2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzQ4MDYsImV4cCI6MjA5MDcxMDgwNn0.Idj6NSUFYQg44BnLRJa23EXSHZkJG5vz6tfnfCGEIt8','Prefer':'return=minimal'},body:JSON.stringify({observacion:pedidoActivo.observacion})}).catch(()=>{});}
-function cerrarModal() { document.getElementById('modal-overlay').classList.remove('show'); }
+function cerrarModal() { document.getElementById('modal-overlay')?.classList.remove('show'); }
 
 // ── CALCULADORA ──
 function renderMenuDist() {
@@ -1950,10 +1950,12 @@ function resetearFijosMenu(menuKey) {
 
 
 function toggleSidebar(){
-  const sb  = document.querySelector('.sidebar');
-  const ov  = document.getElementById('mob-overlay');
+  const sb = document.querySelector('.sidebar');
+  const ov = document.getElementById('mob-overlay');
+  if(!sb) return;
   const isOpen = sb.classList.toggle('open');
-  ov.classList.toggle('show', isOpen);
+  if(ov) ov.classList.toggle('show', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
 }
 
 
@@ -3077,7 +3079,7 @@ function generarPDF(pedidoId) {
 
   document.getElementById('pdf-title').textContent = `Cartillas — ${p.id} — ${p.nombre}`;
   document.getElementById('pdf-content').innerHTML = html;
-  document.getElementById('pdf-overlay').classList.add('show');
+  document.getElementById('pdf-overlay')?.classList.add('show');
 }
 
 function buildPDFHTML(pedido, platos, factor, porciones) {
@@ -3309,7 +3311,7 @@ function imprimirPDF() {
 }
 
 function cerrarPDF() {
-  document.getElementById('pdf-overlay').classList.remove('show');
+  document.getElementById('pdf-overlay')?.classList.remove('show');
 }
 
 
@@ -3728,7 +3730,7 @@ async function sincronizarDesdeSheets(mostrarToast){
     if(st) st.innerHTML = `🟢 <span style="color:rgba(255,255,255,.7);">Sync ${now}</span>`;
 
     renderAll();
-    if(document.getElementById('tab-semanal').classList.contains('active')) renderSemanal();
+    if(document.getElementById('tab-semanal')?.classList.contains('active')) renderSemanal();
     if(mostrarToast) showToast(cambios>0 ? `✓ ${cambios} cambio${cambios!==1?'s':''} importados` : '✓ Sin cambios nuevos');
 
   }catch(err){
