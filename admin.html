@@ -32,15 +32,28 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--tx);min-h
 .tb-badge{font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;background:var(--vl);color:var(--v);}
 .content{padding:24px 28px;}
 @media(max-width:768px){
-  .sidebar{transform:translateX(-100%);transition:transform .25s;width:260px;}
+  .sidebar{transform:translateX(-100%);transition:transform .25s;width:260px;z-index:200;}
   .sidebar.open{transform:translateX(0);}
   .main{margin-left:0;}
-  .topbar{padding:0 12px;}
-  .hamburger{display:flex;}
-  .overlay-mob{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99;}
+  .topbar{padding:0 10px;gap:8px;}
+  .hamburger{
+    display:flex;flex-direction:column;justify-content:center;align-items:center;
+    gap:5px;width:40px;height:40px;flex-shrink:0;
+    background:none;border:none;cursor:pointer;border-radius:8px;padding:6px;
+  }
+  .hamburger span{
+    display:block;width:22px;height:2.5px;
+    background:var(--v);border-radius:2px;transition:all .2s;
+  }
+  .overlay-mob{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;
+  }
   .overlay-mob.show{display:block;}
 }
-@media(min-width:769px){.hamburger{display:none;}.overlay-mob{display:none;}}
+@media(min-width:769px){
+  .hamburger{display:none;}
+  .overlay-mob{display:none;}
+}.overlay-mob{display:none;}}
 /* TABS */
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
@@ -726,46 +739,46 @@ const FIJOS_MES = 550; // marketing+app+misc
 
 const PORTAFOLIO = [
   // Criollo
-  {id:'DIS-01a',n:'Estofado de Pollo',                 p:'Pollo presa',    pp:4.0, pk:0.6,otros:11,c:'Criollo',    t:50},
+  {id:'DIS-01a',n:'Estofado de Pollo',                 p:'Pollo entero',   pp:4.8, pk:1.0,otros:11,c:'Criollo',    t:50},
   {id:'DIS-01b',n:'Estofado de Res',                   p:'Res cadera',     pp:22.0,pk:0.5,otros:11,c:'Criollo',    t:55},
   {id:'DIS-02a',n:'Adobo de Chancho',                  p:'Cerdo bondiola', pp:18.0,pk:0.6,otros:12,c:'Criollo',    t:45},
   {id:'DIS-03a',n:'Locro con Pollo a la Plancha',      p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:14,c:'Criollo',    t:40},
   {id:'DIS-03b',n:'Locro con Bistec',                  p:'Res cadera',     pp:22.0,pk:0.3,otros:14,c:'Criollo',    t:40},
   {id:'DIS-04', n:'Olluquito con Carne',               p:'Res cadera',     pp:22.0,pk:0.3,otros:9, c:'Criollo',    t:35},
-  {id:'DIS-05', n:'Ají de Gallina Cremoso',                    p:'Pollo pechuga',  pp:4.5, pk:1.0,otros:15,c:'Criollo',    t:55},
+  {id:'DIS-05', n:'Ají de Gallina',                    p:'Pollo pechuga',  pp:4.5, pk:1.0,otros:15,c:'Criollo',    t:55},
   {id:'DIS-07', n:'Picante de Carne Criollo',          p:'Res cadera',     pp:22.0,pk:0.4,otros:10,c:'Criollo',    t:65},
-  {id:'DIS-08', n:'Ceviche de Pollo',                  p:'Pollo presa',    pp:4.0, pk:0.4,otros:10,c:'Criollo',    t:30},
-  {id:'DIS-09', n:'Estofado Verde de Pollo',           p:'Pollo presa',    pp:4.0, pk:0.6,otros:10,c:'Criollo',    t:50},
-  {id:'DIS-10', n:'Pollo a la Mostaza',                p:'Pollo presa',    pp:4.0, pk:0.6,otros:9, c:'Criollo',    t:40},
+  {id:'DIS-08', n:'Ceviche de Pollo',                  p:'Pollo entero',   pp:4.8, pk:1.0,otros:10,c:'Criollo',    t:30},
+  {id:'DIS-09', n:'Estofado Verde de Pollo',           p:'Pollo entero',   pp:4.8, pk:1.0,otros:10,c:'Criollo',    t:50},
+  {id:'DIS-10', n:'Pollo a la Mostaza',                p:'Pollo entero',   pp:4.8, pk:1.0,otros:9, c:'Criollo',    t:40},
   {id:'DIS-11', n:'Seco de Res',                       p:'Res cadera',     pp:22.0,pk:0.4,otros:12,c:'Criollo',    t:60},
   // Menestras
-  {id:'DIS-12', n:'Lentejas Guisadas con Pollo',       p:'Pollo presa',    pp:4.0, pk:0.5,otros:9, c:'Menestras',  t:45},
+  {id:'DIS-12', n:'Lentejas Guisadas con Pollo',       p:'Pollo entero',   pp:4.8, pk:1.0,otros:9, c:'Menestras',  t:45},
   // Arroces
-  {id:'DIS-13', n:'Arroz con Pollo',                   p:'Pollo presa',    pp:4.0, pk:0.6,otros:9, c:'Arroces',    t:45},
+  {id:'DIS-13', n:'Arroz con Pollo',                   p:'Pollo entero',   pp:4.8, pk:1.0,otros:9, c:'Arroces',    t:45},
   {id:'DIS-14', n:'Arroz Chaufa Carnívoro',            p:'Pollo+Res+Cerdo',pp:10.0,pk:0.6,otros:10,c:'Arroces',    t:25},
   {id:'DIS-15', n:'Arroz con Carne Norteña',           p:'Res cadera',     pp:22.0,pk:0.4,otros:11,c:'Arroces',    t:45},
-  {id:'DIS-16', n:'Seco de Pollo Norteño',             p:'Pollo presa',    pp:4.0, pk:0.8,otros:14,c:'Arroces',    t:50},
+  {id:'DIS-16', n:'Seco de Pollo Norteño',             p:'Pollo entero',   pp:4.8, pk:1.0,otros:14,c:'Arroces',    t:50},
   {id:'DIS-17a',n:'Lomo Saltado de Res',               p:'Res lomo fino',  pp:32.0,pk:0.5,otros:12,c:'Arroces',    t:40},
   {id:'DIS-17b',n:'Pollo Saltado',                     p:'Pollo pechuga',  pp:4.5, pk:0.5,otros:12,c:'Arroces',    t:40},
-  {id:'DIS-18', n:'Arroz a la Jardinera',              p:'Pollo presa',    pp:4.0, pk:0.5,otros:9, c:'Arroces',    t:40},
+  {id:'DIS-18', n:'Arroz a la Jardinera',              p:'Pollo entero',   pp:4.8, pk:1.0,otros:9, c:'Arroces',    t:40},
   {id:'DIS-36', n:'Arroz Tapado',                      p:'Res molida',     pp:18.0,pk:0.4,otros:10,c:'Arroces',    t:35},
   // Pastas
-  {id:'DIS-19a',n:'Tallarines Rojos con Pollo',        p:'Pollo presa',    pp:4.0, pk:0.6,otros:10,c:'Pastas',     t:35},
+  {id:'DIS-19a',n:'Tallarines Rojos con Pollo',        p:'Pollo entero',   pp:4.8, pk:1.0,otros:10,c:'Pastas',     t:35},
   {id:'DIS-19b',n:'Tallarines Rojos con Carne Molida', p:'Res molida',     pp:18.0,pk:0.4,otros:10,c:'Pastas',     t:35},
   {id:'DIS-20a',n:'Tallarines Verdes + Bistec',        p:'Res cadera',     pp:22.0,pk:0.5,otros:14,c:'Pastas',     t:35},
   {id:'DIS-20b',n:'Tallarines Verdes + Milanesa',      p:'Pollo milanesa', pp:6.5, pk:0.5,otros:14,c:'Pastas',     t:35},
-  {id:'DIS-21', n:'Fettuccini a la Huancaína',       p:'Res lomo fino',  pp:32.0,pk:0.4,otros:14,c:'Pastas',     t:35},
+  {id:'DIS-21', n:'Fettuccini Huancaína + Lomo',       p:'Res lomo fino',  pp:32.0,pk:0.4,otros:14,c:'Pastas',     t:35},
   {id:'DIS-22', n:'Pasta en Salsa Blanca',             p:'Pollo milanesa', pp:6.5, pk:0.4,otros:10,c:'Pastas',     t:30},
   {id:'DIS-24', n:'Risotto con Pollo',                 p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:13,c:'Pastas',     t:60},
   // Al Horno
-  {id:'DIS-25', n:'Pollo al Horno Criollo',p:'Pollo presa',   pp:4.0, pk:0.8,otros:12,c:'Al Horno',   t:90},
-  {id:'DIS-26', n:'Pollo al Horno + Puré',             p:'Pollo presa',    pp:4.0, pk:0.8,otros:11,c:'Al Horno',   t:50},
-  {id:'DIS-27', n:'Pollo BBQ',               p:'Pollo presa',    pp:4.0, pk:0.7,otros:11,c:'Al Horno',   t:50},
+  {id:'DIS-25', n:'Pollo al Horno Criollo + Ens. Rusa',p:'Pollo presa',   pp:4.0, pk:0.8,otros:12,c:'Al Horno',   t:90},
+  {id:'DIS-26', n:'Pollo al Horno + Puré',             p:'Pollo entero',   pp:4.8, pk:1.0,otros:11,c:'Al Horno',   t:50},
+  {id:'DIS-27', n:'Pollo BBQ con Papas',               p:'Pollo presa',    pp:4.0, pk:0.7,otros:11,c:'Al Horno',   t:50},
   {id:'DIS-39', n:'Pollo con Champiñones a la Crema',  p:'Pollo presa',    pp:4.0, pk:0.7,otros:13,c:'Al Horno',   t:35},
   // Fusión
   {id:'DIS-28', n:'Cerdo Agridulce Crocante',          p:'Cerdo bondiola', pp:18.0,pk:0.5,otros:12,c:'Fusión',     t:40},
   {id:'DIS-29', n:'Chijaukay',                         p:'Pollo pechuga',  pp:4.5, pk:0.6,otros:10,c:'Fusión',     t:20},
-  {id:'DIS-30', n:'Tonkatsu',      p:'Cerdo lomo',     pp:20.0,pk:0.5,otros:12,c:'Fusión',     t:30},
+  {id:'DIS-30', n:'Tonkatsu con Ensalada Nikkei',      p:'Cerdo lomo',     pp:20.0,pk:0.5,otros:12,c:'Fusión',     t:30},
   {id:'DIS-31', n:'Lomo de Cerdo al Curry Cremoso',    p:'Cerdo lomo',     pp:20.0,pk:0.5,otros:11,c:'Fusión',     t:35},
   // Bowls & Fit
   {id:'DIS-32', n:'Bowl Acevichado de Pollo',          p:'Pollo pechuga',  pp:4.5, pk:0.4,otros:12,c:'Bowls & Fit',t:30},
@@ -812,20 +825,20 @@ const PRECIOS_MAY = {
 const COMPRAS_PLATO = {
   "Ají de Gallina Cremoso":     [["Pollo pechuga",1.0,"kg"],["Cebolla",0.36,"kg"],["Leche evaporada",2,"lata"]],
   "Lomo Saltado":               [["Res cadera",0.6,"kg"],["Cebolla",0.36,"kg"],["Tomate",0.3,"kg"],["Papa blanca",0.6,"kg"]],
-  "Tallarines Rojos":           [["Pollo presa",0.6,"kg"],["Pasta spaghetti",0.36,"kg"],["Tomate",0.4,"kg"],["Cebolla",0.2,"kg"]],
+  "Tallarines Rojos":           [["Pollo entero",1,"un"],["Pasta spaghetti",0.36,"kg"],["Tomate",0.4,"kg"],["Cebolla",0.2,"kg"]],
   "Adobo de Cerdo":             [["Cerdo brazuelo",0.6,"kg"],["Cebolla",0.2,"kg"]],
-  "Pollada Peruana":            [["Pollo presa",0.8,"kg"],["Cebolla",0.3,"kg"]],
-  "Pollo al Horno Criollo":    [["Pollo entero",0.8,"kg"],["Papa blanca",0.6,"kg"],["Cebolla",0.3,"kg"]],
+  "Pollada Peruana":            [["Pollo entero",1,"un"],["Cebolla",0.3,"kg"]],
+  "Pollo al Horno Criollo":    [["Pollo entero",1,"un"],["Papa blanca",0.6,"kg"],["Cebolla",0.3,"kg"]],
   "Estofado de Cerdo":          [["Cerdo brazuelo",0.7,"kg"],["Tomate",0.4,"kg"],["Cebolla",0.2,"kg"],["Zanahoria",0.16,"kg"]],
   "Estofado de Res con Cerveza Negra":[["Res cadera",0.5,"kg"],["Cebolla",0.2,"kg"],["Zanahoria",0.16,"kg"]],
   "Ceviche de Pollo":           [["Pollo pechuga",0.4,"kg"],["Cebolla",0.2,"kg"]],
-  "Arroz con Pollo":            [["Pollo presa",0.6,"kg"],["Arroz",0.3,"kg"],["Zanahoria",0.16,"kg"],["Cebolla",0.2,"kg"]],
-  "Estofado Verde de Pollo":    [["Pollo presa",0.6,"kg"],["Cebolla",0.2,"kg"]],
+  "Arroz con Pollo":            [["Pollo entero",1,"un"],["Arroz",0.3,"kg"],["Zanahoria",0.16,"kg"],["Cebolla",0.2,"kg"]],
+  "Estofado Verde de Pollo":    [["Pollo entero",1,"un"],["Cebolla",0.2,"kg"]],
   "Picante de Carne Criollo":  [["Res cadera",0.4,"kg"],["Papa blanca",0.4,"kg"],["Cebolla",0.2,"kg"]],
-  "Pollo a la Mostaza":         [["Pollo presa",0.6,"kg"],["Cebolla",0.2,"kg"]],
+  "Pollo a la Mostaza":         [["Pollo entero",1,"un"],["Cebolla",0.2,"kg"]],
   "Albóndigas con Puré":       [["Res molida",0.5,"kg"],["Papa blanca",0.5,"kg"],["Cebolla",0.15,"kg"]],
   "Tallarines Verdes + Bistec": [["Res cadera",0.5,"kg"],["Pasta spaghetti",0.36,"kg"],["Leche evaporada",2,"lata"]],
-  "Seco de Pollo Norteño":      [["Pollo presa",0.8,"kg"],["Papa blanca",0.6,"kg"],["Zanahoria",0.16,"kg"],["Cebolla",0.2,"kg"]],
+  "Seco de Pollo Norteño":      [["Pollo entero",1,"un"],["Papa blanca",0.6,"kg"],["Zanahoria",0.16,"kg"],["Cebolla",0.2,"kg"]],
   "Arroz con Carne Norteña":    [["Res cadera",0.4,"kg"],["Arroz",0.3,"kg"],["Cebolla",0.2,"kg"]],
   "Olluquito con Carne":        [["Res cadera",0.4,"kg"],["Cebolla",0.16,"kg"]],
   "Locro de Zapallo":           [["Leche evaporada",2,"lata"],["Cebolla",0.16,"kg"]],
@@ -837,10 +850,10 @@ const COMPRAS_PLATO = {
   "Risotto con Pollo":          [["Pollo pechuga",0.4,"kg"],["Arroz arbóreo",0.3,"kg"],["Leche evaporada",2,"lata"],["Cebolla",0.16,"kg"]],
   "Arroz Chaufa Carnívoro":    [["Pollo presa",0.25,"kg"],["Res cadera",0.2,"kg"],["Cerdo bondiola",0.15,"kg"],["Arroz",0.3,"kg"],["Cebolla",0.16,"kg"]],
   "Cerdo Agridulce Crocante":  [["Cerdo lomo",0.5,"kg"],["Cebolla",0.16,"kg"]],
-  "Chijaukay":                  [["Pollo entero",0.7,"kg"],["Cebolla",0.16,"kg"]],
+  "Chijaukay":                  [["Pollo entero",1,"un"],["Cebolla",0.16,"kg"]],
   "Tonkatsu":                   [["Cerdo lomo",0.5,"kg"],["Cebolla",0.16,"kg"]],
   "Lomo de Cerdo al Curry":    [["Cerdo lomo",0.5,"kg"],["Cebolla",0.16,"kg"]],
-  "Pollo BBQ":                  [["Pollo entero",0.8,"kg"],["Cebolla",0.16,"kg"]],
+  "Pollo BBQ":                  [["Pollo entero",1,"un"],["Cebolla",0.16,"kg"]],
 };
 
 const EMPAQUE_CAJA = 14.5; // S/. por caja (empaque+delivery fijos)
@@ -1570,17 +1583,17 @@ const PLATOS_CATALOG = [
   {id:'DIS-36',n:'Arroz Tapado',c:'Arroces',emoji:'🍚'},
   {id:'DIS-19',n:'Tallarines Rojos con Pollo',c:'Pastas',emoji:'🍝'},
   {id:'DIS-20',n:'Tallarines Verdes + Bistec',c:'Pastas',emoji:'🍝'},
-  {id:'DIS-21',n:'Fettuccini a la Huancaína',c:'Pastas',emoji:'🍝'},
+  {id:'DIS-21',n:'Fettuccini Huancaína + Lomo',c:'Pastas',emoji:'🍝'},
   {id:'DIS-22',n:'Pasta en Salsa Blanca',c:'Pastas',emoji:'🍝'},
   {id:'DIS-23',n:'Spaghetti Ragú Bolognese',c:'Pastas',emoji:'🍝'},
   {id:'DIS-24',n:'Risotto con Pollo',c:'Pastas',emoji:'🍜'},
-  {id:'DIS-25',n:'Pollo al Horno Criollo',c:'Al Horno',emoji:'🍗'},
+  {id:'DIS-25',n:'Pollo al Horno Criollo + Ens. Rusa',c:'Al Horno',emoji:'🍗'},
   {id:'DIS-26',n:'Pollo al Horno + Puré',c:'Al Horno',emoji:'🍗'},
-  {id:'DIS-27',n:'Pollo BBQ',c:'Al Horno',emoji:'🍗'},
+  {id:'DIS-27',n:'Pollo BBQ con Papas',c:'Al Horno',emoji:'🍗'},
   {id:'DIS-39',n:'Pollo con Champiñones a la Crema',c:'Al Horno',emoji:'🍄'},
   {id:'DIS-28',n:'Cerdo Agridulce Crocante',c:'Fusión',emoji:'🐷'},
   {id:'DIS-29',n:'Chijaukay',c:'Fusión',emoji:'🥢'},
-  {id:'DIS-30',n:'Tonkatsu',c:'Fusión',emoji:'🥢'},
+  {id:'DIS-30',n:'Tonkatsu con Ensalada Nikkei',c:'Fusión',emoji:'🥢'},
   {id:'DIS-31',n:'Lomo de Cerdo al Curry Cremoso',c:'Fusión',emoji:'🐷'},
   {id:'DIS-32',n:'Bowl Acevichado de Pollo',c:'Bowls & Fit',emoji:'🥑'},
   {id:'DIS-33',n:'Bowl Criollo Pollo + Camote',c:'Bowls & Fit',emoji:'🥑'},
@@ -1953,6 +1966,84 @@ async function guardarPreciosMenus(){const precios=getPreciosMenus();await pushC
 function renderAll(){renderDashboard();renderPedidos();}
 
 // ── DEMO DATA ──
+
+function seedDemoOrders() {
+  if(getPedidos().length > 0) return;
+  const demo = [{"id": "PED-0001", "fecha": "04/05/2025 10:00", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 3, "porciones": 2, "platos_elegidos": "", "metodo_pago": "yape", "monto": 68, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T10:00:00"},
+    {"id": "PED-0002", "fecha": "04/05/2025 10:15", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 3, "porciones": 4, "platos_elegidos": "", "metodo_pago": "plin", "monto": 115, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T10:15:00"},
+    {"id": "PED-0003", "fecha": "04/05/2025 10:30", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 3, "porciones": 6, "platos_elegidos": "", "metodo_pago": "yape", "monto": 159, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T10:30:00"},
+    {"id": "PED-0004", "fecha": "04/05/2025 10:45", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 5, "porciones": 2, "platos_elegidos": "Tallarines Rojos con Pollo | Lentejas Guisadas con Pollo", "metodo_pago": "plin", "monto": 92, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T10:45:00"},
+    {"id": "PED-0005", "fecha": "04/05/2025 11:00", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 5, "porciones": 4, "platos_elegidos": "Locro de Zapallo | Pollo al Horno + Puré", "metodo_pago": "yape", "monto": 149, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T11:00:00"},
+    {"id": "PED-0006", "fecha": "04/05/2025 11:15", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 5, "porciones": 6, "platos_elegidos": "Estofado Verde de Pollo | Olluquito con Carne", "metodo_pago": "plin", "monto": 199, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T11:15:00"},
+    {"id": "PED-0007", "fecha": "04/05/2025 11:30", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 7, "porciones": 2, "platos_elegidos": "Tallarines Rojos con Pollo | Lentejas Guisadas con Pollo | Locro de Zapallo | Pollo al Horno + Puré", "metodo_pago": "yape", "monto": 122, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T11:30:00"},
+    {"id": "PED-0008", "fecha": "04/05/2025 11:45", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 7, "porciones": 4, "platos_elegidos": "Estofado Verde de Pollo | Olluquito con Carne | Tallarines Rojos con Pollo | Lentejas Guisadas con Pollo", "metodo_pago": "plin", "monto": 189, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T11:45:00"},
+    {"id": "PED-0009", "fecha": "04/05/2025 12:00", "nombre": "Ana Quispe", "dni": "12345601", "email": "ana.quispe@gmail.com", "telefono": "998001001", "menu": "mesa", "menu_nombre": "La Mesa de Siempre", "n_dias": 7, "porciones": 6, "platos_elegidos": "Locro de Zapallo | Pollo al Horno + Puré | Estofado Verde de Pollo | Olluquito con Carne", "metodo_pago": "yape", "monto": 259, "estado": "pendiente_verificacion", "direccion": "Av. Bolognesi 234", "distrito": "Bellavista", "notas": "", "observacion": "", "created_at": "2025-05-04T12:00:00"},
+    {"id": "PED-0010", "fecha": "04/05/2025 12:15", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 3, "porciones": 2, "platos_elegidos": "", "metodo_pago": "plin", "monto": 62, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T12:15:00"},
+    {"id": "PED-0011", "fecha": "04/05/2025 12:30", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 3, "porciones": 4, "platos_elegidos": "", "metodo_pago": "yape", "monto": 105, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T12:30:00"},
+    {"id": "PED-0012", "fecha": "04/05/2025 12:45", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 3, "porciones": 6, "platos_elegidos": "", "metodo_pago": "plin", "monto": 145, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T12:45:00"},
+    {"id": "PED-0013", "fecha": "04/05/2025 13:00", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 5, "porciones": 2, "platos_elegidos": "Pasta en Salsa Blanca + Milanesa | Tallarines Verdes + Proteína Apanada", "metodo_pago": "yape", "monto": 85, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T13:00:00"},
+    {"id": "PED-0014", "fecha": "04/05/2025 13:15", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 5, "porciones": 4, "platos_elegidos": "Lomo Saltado | Arroz Tapado", "metodo_pago": "plin", "monto": 139, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T13:15:00"},
+    {"id": "PED-0015", "fecha": "04/05/2025 13:30", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 5, "porciones": 6, "platos_elegidos": "Ensalada César con Pollo | Pollo a la Mostaza", "metodo_pago": "yape", "monto": 185, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T13:30:00"},
+    {"id": "PED-0016", "fecha": "04/05/2025 13:45", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 7, "porciones": 2, "platos_elegidos": "Pasta en Salsa Blanca + Milanesa | Tallarines Verdes + Proteína Apanada | Lomo Saltado | Arroz Tapado", "metodo_pago": "plin", "monto": 115, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T13:45:00"},
+    {"id": "PED-0017", "fecha": "04/05/2025 14:00", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 7, "porciones": 4, "platos_elegidos": "Ensalada César con Pollo | Pollo a la Mostaza | Pasta en Salsa Blanca + Milanesa | Tallarines Verdes + Proteína Apanada", "metodo_pago": "yape", "monto": 179, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T14:00:00"},
+    {"id": "PED-0018", "fecha": "04/05/2025 14:15", "nombre": "Carlos Mendoza", "dni": "12345602", "email": "carlos.m@gmail.com", "telefono": "998002002", "menu": "express", "menu_nombre": "Cocina Express", "n_dias": 7, "porciones": 6, "platos_elegidos": "Lomo Saltado | Arroz Tapado | Ensalada César con Pollo | Pollo a la Mostaza", "metodo_pago": "plin", "monto": 245, "estado": "pendiente_verificacion", "direccion": "Jr. Lima 456", "distrito": "Callao", "notas": "", "observacion": "", "created_at": "2025-05-04T14:15:00"},
+    {"id": "PED-0019", "fecha": "04/05/2025 14:30", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 3, "porciones": 2, "platos_elegidos": "", "metodo_pago": "yape", "monto": 65, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T14:30:00"},
+    {"id": "PED-0020", "fecha": "04/05/2025 14:45", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 3, "porciones": 4, "platos_elegidos": "", "metodo_pago": "plin", "monto": 109, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T14:45:00"},
+    {"id": "PED-0021", "fecha": "04/05/2025 15:00", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 3, "porciones": 6, "platos_elegidos": "", "metodo_pago": "yape", "monto": 149, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T15:00:00"},
+    {"id": "PED-0022", "fecha": "04/05/2025 15:15", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 5, "porciones": 2, "platos_elegidos": "Seco de Res | Estofado Verde de Pollo", "metodo_pago": "plin", "monto": 88, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T15:15:00"},
+    {"id": "PED-0023", "fecha": "04/05/2025 15:30", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 5, "porciones": 4, "platos_elegidos": "Olluquito con Carne | Locro de Zapallo", "metodo_pago": "yape", "monto": 145, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T15:30:00"},
+    {"id": "PED-0024", "fecha": "04/05/2025 15:45", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 5, "porciones": 6, "platos_elegidos": "Picante de Carne Criollo | Lentejas Guisadas con Pollo", "metodo_pago": "plin", "monto": 195, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T15:45:00"},
+    {"id": "PED-0025", "fecha": "04/05/2025 16:00", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 7, "porciones": 2, "platos_elegidos": "Seco de Res | Estofado Verde de Pollo | Olluquito con Carne | Locro de Zapallo", "metodo_pago": "yape", "monto": 119, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T16:00:00"},
+    {"id": "PED-0026", "fecha": "04/05/2025 16:15", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 7, "porciones": 4, "platos_elegidos": "Picante de Carne Criollo | Lentejas Guisadas con Pollo | Seco de Res | Estofado Verde de Pollo", "metodo_pago": "plin", "monto": 185, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T16:15:00"},
+    {"id": "PED-0027", "fecha": "04/05/2025 16:30", "nombre": "Rosa Cárdenas", "dni": "12345603", "email": "rosa.c@hotmail.com", "telefono": "998003003", "menu": "nortena", "menu_nombre": "Cocina Norteña", "n_dias": 7, "porciones": 6, "platos_elegidos": "Olluquito con Carne | Locro de Zapallo | Picante de Carne Criollo | Lentejas Guisadas con Pollo", "metodo_pago": "yape", "monto": 255, "estado": "pendiente_verificacion", "direccion": "Av. Colonial 789", "distrito": "Pueblo Libre", "notas": "", "observacion": "", "created_at": "2025-05-04T16:30:00"},
+    {"id": "PED-0028", "fecha": "04/05/2025 16:45", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 3, "porciones": 2, "platos_elegidos": "", "metodo_pago": "plin", "monto": 65, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T16:45:00"},
+    {"id": "PED-0029", "fecha": "04/05/2025 17:00", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 3, "porciones": 4, "platos_elegidos": "", "metodo_pago": "yape", "monto": 109, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T17:00:00"},
+    {"id": "PED-0030", "fecha": "04/05/2025 17:15", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 3, "porciones": 6, "platos_elegidos": "", "metodo_pago": "plin", "monto": 149, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T17:15:00"},
+    {"id": "PED-0031", "fecha": "04/05/2025 17:30", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 5, "porciones": 2, "platos_elegidos": "Estofado Criollo | Picante de Carne Criollo", "metodo_pago": "yape", "monto": 88, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T17:30:00"},
+    {"id": "PED-0032", "fecha": "04/05/2025 17:45", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 5, "porciones": 4, "platos_elegidos": "Seco de Res | Ceviche de Pollo", "metodo_pago": "plin", "monto": 145, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T17:45:00"},
+    {"id": "PED-0033", "fecha": "04/05/2025 18:00", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 5, "porciones": 6, "platos_elegidos": "Locro de Zapallo | Arroz con Pollo", "metodo_pago": "yape", "monto": 195, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T18:00:00"},
+    {"id": "PED-0034", "fecha": "04/05/2025 18:15", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 7, "porciones": 2, "platos_elegidos": "Estofado Criollo | Picante de Carne Criollo | Seco de Res | Ceviche de Pollo", "metodo_pago": "plin", "monto": 118, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T18:15:00"},
+    {"id": "PED-0035", "fecha": "04/05/2025 18:30", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 7, "porciones": 4, "platos_elegidos": "Locro de Zapallo | Arroz con Pollo | Estofado Criollo | Picante de Carne Criollo", "metodo_pago": "yape", "monto": 185, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T18:30:00"},
+    {"id": "PED-0036", "fecha": "04/05/2025 18:45", "nombre": "Jorge Salinas", "dni": "12345604", "email": "jorge.s@gmail.com", "telefono": "998004004", "menu": "criolla", "menu_nombre": "Criollo Puro", "n_dias": 7, "porciones": 6, "platos_elegidos": "Seco de Res | Ceviche de Pollo | Locro de Zapallo | Arroz con Pollo", "metodo_pago": "plin", "monto": 255, "estado": "pendiente_verificacion", "direccion": "Calle Real 101", "distrito": "San Miguel", "notas": "", "observacion": "", "created_at": "2025-05-04T18:45:00"},
+    {"id": "PED-0037", "fecha": "04/05/2025 19:00", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 3, "porciones": 2, "platos_elegidos": "", "metodo_pago": "yape", "monto": 72, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T19:00:00"},
+    {"id": "PED-0038", "fecha": "04/05/2025 19:15", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 3, "porciones": 4, "platos_elegidos": "", "metodo_pago": "plin", "monto": 119, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T19:15:00"},
+    {"id": "PED-0039", "fecha": "04/05/2025 19:30", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 3, "porciones": 6, "platos_elegidos": "", "metodo_pago": "yape", "monto": 165, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T19:30:00"},
+    {"id": "PED-0040", "fecha": "04/05/2025 19:45", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 5, "porciones": 2, "platos_elegidos": "Arroz Chaufa Carnívoro | Chijaukay", "metodo_pago": "plin", "monto": 95, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T19:45:00"},
+    {"id": "PED-0041", "fecha": "04/05/2025 20:00", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 5, "porciones": 4, "platos_elegidos": "Lomo de Cerdo al Curry Cremoso | Tallarines Verdes + Proteína Apanada", "metodo_pago": "yape", "monto": 169, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T20:00:00"},
+    {"id": "PED-0042", "fecha": "04/05/2025 20:15", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 5, "porciones": 6, "platos_elegidos": "Lomo Saltado | Pollo BBQ con Papas", "metodo_pago": "plin", "monto": 229, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T20:15:00"},
+    {"id": "PED-0043", "fecha": "04/05/2025 20:30", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 7, "porciones": 2, "platos_elegidos": "Arroz Chaufa Carnívoro | Chijaukay | Lomo de Cerdo al Curry Cremoso | Tallarines Verdes + Proteína Apanada", "metodo_pago": "yape", "monto": 125, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T20:30:00"},
+    {"id": "PED-0044", "fecha": "04/05/2025 20:45", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 7, "porciones": 4, "platos_elegidos": "Lomo Saltado | Pollo BBQ con Papas | Arroz Chaufa Carnívoro | Chijaukay", "metodo_pago": "plin", "monto": 209, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T20:45:00"},
+    {"id": "PED-0045", "fecha": "04/05/2025 21:00", "nombre": "Paola Chávez", "dni": "12345605", "email": "paola.ch@gmail.com", "telefono": "998005005", "menu": "fusion", "menu_nombre": "Sabores del Mundo", "n_dias": 7, "porciones": 6, "platos_elegidos": "Lomo de Cerdo al Curry Cremoso | Tallarines Verdes + Proteína Apanada | Lomo Saltado | Pollo BBQ con Papas", "metodo_pago": "yape", "monto": 279, "estado": "pendiente_verificacion", "direccion": "Av. La Marina 202", "distrito": "Magdalena", "notas": "", "observacion": "", "created_at": "2025-05-04T21:00:00"},
+    {"id": "PED-0046", "fecha": "04/05/2025 21:15", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 3, "porciones": 2, "platos_elegidos": "", "metodo_pago": "plin", "monto": 75, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T21:15:00"},
+    {"id": "PED-0047", "fecha": "04/05/2025 21:30", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 3, "porciones": 4, "platos_elegidos": "", "metodo_pago": "yape", "monto": 129, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T21:30:00"},
+    {"id": "PED-0048", "fecha": "04/05/2025 21:45", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 3, "porciones": 6, "platos_elegidos": "", "metodo_pago": "plin", "monto": 179, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T21:45:00"},
+    {"id": "PED-0049", "fecha": "04/05/2025 22:00", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 5, "porciones": 2, "platos_elegidos": "Fettuccini a la Huancaína + Lomo | Tallarines Rojos con Pollo", "metodo_pago": "yape", "monto": 99, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T22:00:00"},
+    {"id": "PED-0050", "fecha": "04/05/2025 22:15", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 5, "porciones": 4, "platos_elegidos": "Pasta en Salsa Blanca + Milanesa | Pollo al Horno Criollo + Ensalada Rusa", "metodo_pago": "plin", "monto": 179, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T22:15:00"},
+    {"id": "PED-0051", "fecha": "04/05/2025 22:30", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 5, "porciones": 6, "platos_elegidos": "Pollo con Champiñones a la Crema | Lomo Saltado", "metodo_pago": "yape", "monto": 239, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T22:30:00"},
+    {"id": "PED-0052", "fecha": "04/05/2025 22:45", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 7, "porciones": 2, "platos_elegidos": "Fettuccini a la Huancaína + Lomo | Tallarines Rojos con Pollo | Pasta en Salsa Blanca + Milanesa | Pollo al Horno Criollo + Ensalada Rusa", "metodo_pago": "plin", "monto": 129, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T22:45:00"},
+    {"id": "PED-0053", "fecha": "04/05/2025 23:00", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 7, "porciones": 4, "platos_elegidos": "Pollo con Champiñones a la Crema | Lomo Saltado | Fettuccini a la Huancaína + Lomo | Tallarines Rojos con Pollo", "metodo_pago": "yape", "monto": 219, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T23:00:00"},
+    {"id": "PED-0054", "fecha": "04/05/2025 23:15", "nombre": "Miguel Torres", "dni": "12345606", "email": "miguel.t@outlook.com", "telefono": "998006006", "menu": "buena", "menu_nombre": "La Buena Mesa", "n_dias": 7, "porciones": 6, "platos_elegidos": "Pasta en Salsa Blanca + Milanesa | Pollo al Horno Criollo + Ensalada Rusa | Pollo con Champiñones a la Crema | Lomo Saltado", "metodo_pago": "plin", "monto": 289, "estado": "pendiente_verificacion", "direccion": "Jr. Cusco 303", "distrito": "Breña", "notas": "", "observacion": "", "created_at": "2025-05-04T23:15:00"},
+    {"id": "PED-0055", "fecha": "04/05/2025 23:30", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 3, "porciones": 2, "platos_elegidos": "", "metodo_pago": "yape", "monto": 68, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-04T23:30:00"},
+    {"id": "PED-0056", "fecha": "04/05/2025 23:45", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 3, "porciones": 4, "platos_elegidos": "", "metodo_pago": "plin", "monto": 115, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-04T23:45:00"},
+    {"id": "PED-0057", "fecha": "05/05/2025 00:00", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 3, "porciones": 6, "platos_elegidos": "", "metodo_pago": "yape", "monto": 159, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-05T00:00:00"},
+    {"id": "PED-0058", "fecha": "05/05/2025 00:15", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 5, "porciones": 2, "platos_elegidos": "Pollo a la Mostaza | Pollo al Horno Criollo + Ensalada Rusa", "metodo_pago": "plin", "monto": 90, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-05T00:15:00"},
+    {"id": "PED-0059", "fecha": "05/05/2025 00:30", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 5, "porciones": 4, "platos_elegidos": "Pollo BBQ con Papas | Pollo con Champiñones a la Crema", "metodo_pago": "yape", "monto": 149, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-05T00:30:00"},
+    {"id": "PED-0060", "fecha": "05/05/2025 00:45", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 5, "porciones": 6, "platos_elegidos": "Lentejas Guisadas con Pollo | Arroz a la Jardinera", "metodo_pago": "plin", "monto": 199, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-05T00:45:00"},
+    {"id": "PED-0061", "fecha": "05/05/2025 01:00", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 7, "porciones": 2, "platos_elegidos": "Lentejas Guisadas con Pollo | Arroz a la Jardinera | Ceviche de Pollo | Pollo a la Mostaza", "metodo_pago": "yape", "monto": 120, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-05T01:00:00"},
+    {"id": "PED-0062", "fecha": "05/05/2025 01:15", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 7, "porciones": 4, "platos_elegidos": "Pollo al Horno Criollo + Ensalada Rusa | Pollo BBQ con Papas | Pollo con Champiñones a la Crema | Lentejas Guisadas con Pollo", "metodo_pago": "plin", "monto": 189, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-05T01:15:00"},
+    {"id": "PED-0063", "fecha": "05/05/2025 01:30", "nombre": "Lucía Flores", "dni": "12345607", "email": "lucia.f@gmail.com", "telefono": "998007007", "menu": "criollolima", "menu_nombre": "Criollo Lima", "n_dias": 7, "porciones": 6, "platos_elegidos": "Arroz a la Jardinera | Ceviche de Pollo | Pollo a la Mostaza | Pollo al Horno Criollo + Ensalada Rusa", "metodo_pago": "yape", "monto": 259, "estado": "pendiente_verificacion", "direccion": "Av. Brasil 404", "distrito": "Jesús María", "notas": "", "observacion": "", "created_at": "2025-05-05T01:30:00"},
+    {"id": "PED-0064", "fecha": "05/05/2025 01:45", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 3, "porciones": 2, "platos_elegidos": "", "metodo_pago": "plin", "monto": 60, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T01:45:00"},
+    {"id": "PED-0065", "fecha": "05/05/2025 02:00", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 3, "porciones": 4, "platos_elegidos": "", "metodo_pago": "yape", "monto": 99, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T02:00:00"},
+    {"id": "PED-0066", "fecha": "05/05/2025 02:15", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 3, "porciones": 6, "platos_elegidos": "", "metodo_pago": "plin", "monto": 135, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T02:15:00"},
+    {"id": "PED-0067", "fecha": "05/05/2025 02:30", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 5, "porciones": 2, "platos_elegidos": "Ensalada César con Pollo | Bowl Criollo Pollo + Camote", "metodo_pago": "yape", "monto": 80, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T02:30:00"},
+    {"id": "PED-0068", "fecha": "05/05/2025 02:45", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 5, "porciones": 4, "platos_elegidos": "Piña Chicken Bowl | Teriyaki Bowl", "metodo_pago": "plin", "monto": 129, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T02:45:00"},
+    {"id": "PED-0069", "fecha": "05/05/2025 03:00", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 5, "porciones": 6, "platos_elegidos": "Locro de Zapallo | Lentejas Guisadas con Pollo", "metodo_pago": "yape", "monto": 175, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T03:00:00"},
+    {"id": "PED-0070", "fecha": "05/05/2025 03:15", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 7, "porciones": 2, "platos_elegidos": "Ensalada César con Pollo | Bowl Criollo Pollo + Camote | Piña Chicken Bowl | Teriyaki Bowl", "metodo_pago": "plin", "monto": 109, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T03:15:00"},
+    {"id": "PED-0071", "fecha": "05/05/2025 03:30", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 7, "porciones": 4, "platos_elegidos": "Locro de Zapallo | Lentejas Guisadas con Pollo | Ensalada César con Pollo | Bowl Criollo Pollo + Camote", "metodo_pago": "yape", "monto": 169, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T03:30:00"},
+    {"id": "PED-0072", "fecha": "05/05/2025 03:45", "nombre": "Diego Ramírez", "dni": "12345608", "email": "diego.r@gmail.com", "telefono": "998008008", "menu": "fit", "menu_nombre": "Semana Fit", "n_dias": 7, "porciones": 6, "platos_elegidos": "Piña Chicken Bowl | Teriyaki Bowl | Locro de Zapallo | Lentejas Guisadas con Pollo", "metodo_pago": "plin", "monto": 229, "estado": "pendiente_verificacion", "direccion": "Calle Los Olivos 55", "distrito": "La Punta", "notas": "", "observacion": "", "created_at": "2025-05-05T03:45:00"}];
+  localStorage.setItem('dispensia_pedidos', JSON.stringify(demo));
+}
+
 function seedDemoIfEmpty(){
   if(getPedidos().length) return;
   const demos=[
@@ -2726,7 +2817,7 @@ const RECETAS_DB = {
     utensilios:"Olla mediana con tapa, cuchillo, tabla de cortar, cuchara de palo",
     despensa:"Sal, pimienta, comino, aceite vegetal, agua o caldo",
     ingredientes:[
-      {g:"Proteína",items:[["Pollo en presas",500,"g","sellado al vacío con sal/pimienta/comino"]]},
+      {g:"Proteína",items:[["Pollo entero (trozado en presas)",1,"un","sellado al vacío con sal/pimienta/comino"]]},
       {g:"Aderezo — frasquito",items:[["Ají panca pasta",40,"g",""],["Vino tinto seco",100,"ml",""]]},
       {g:"Verduras — bolsa kraft",items:[["Zanahoria",1,"un","pelada en rodajas"],["Aceitunas verdes",30,"g","ziplock"]]},
       {g:"Del cliente",items:[["Papa blanca",3,"un","entera cruda"],["Cebolla blanca",1,"un",""]]}
@@ -2863,7 +2954,7 @@ const RECETAS_DB = {
     utensilios:"Olla grande para pasta, sartén o olla mediana, colador, cuchillo",
     despensa:"Sal, pimienta, comino, aceite vegetal, agua",
     ingredientes:[
-      {g:"Proteína",items:[["Pollo en presas",400,"g","sellado al vacío"]]},
+      {g:"Proteína",items:[["Pollo entero (trozado en presas)",1,"un","sellado al vacío"]]},
       {g:"Salsa — frasquito",items:[["Pasta de tomate",40,"g",""],["Vino tinto seco",100,"ml",""],["Hongo seco",20,"g","ziplock"]]},
       {g:"Del cliente",items:[["Spaghetti",300,"g",""],["Tomates frescos",4,"un","licuar"],["Cebolla",1,"un",""],["Ajo","al gusto","",""],["Laurel",1,"hoja",""]]}
     ],
@@ -3696,6 +3787,7 @@ function initSheets(){
 }
 
 seedDemoIfEmpty();
+seedDemoOrders();
 pullAllConfig().then(()=>{ renderDashboard(); renderMenuDist(); initSheets(); });
 </script>
 
