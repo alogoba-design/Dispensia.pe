@@ -163,6 +163,7 @@ tr:hover td{background:var(--vxl);}
 /* Overlay PDF preview */
 .pdf-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
 .pdf-overlay.show{display:flex;}
+#html-viewer-overlay .pdf-container{overflow-y:auto;}
 .pdf-container{background:#fff;border-radius:16px;width:100%;max-width:860px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.4);}
 .pdf-toolbar{background:var(--v);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;}
 .pdf-toolbar h3{font-size:15px;font-weight:700;color:#fff;flex:1;}
@@ -900,7 +901,7 @@ function goTab(id, el) {
 function renderDashboard() {
   const pedidos = getPedidos();
   const now = Date.now();
-  const semana = pedidos.filter(p => now - new Date(p.fecha).getTime() < 7*24*3600*1000);
+  const semana = pedidos.filter(p => now - parseFecha(p.fecha).getTime() < 7*24*3600*1000);
   const totalCajas = pedidos.length;
   const ingresos = pedidos.reduce((s,p)=>s+(p.monto||0),0);
   const costo = pedidos.reduce((s,p)=>{
@@ -2163,7 +2164,10 @@ function generarPDFOrdenConsumo(pedidos) {
   });
 
   html += '</body></html>';
-  mostrarViewer('📋 Orden de consumo', html.replace(/<!DOCTYPE.*?<body>/s,'').replace('</body></html>',''));
+    const _bs = html.indexOf('<body');
+  const _be = html.lastIndexOf('</body>');
+  const _bh = _bs>=0 ? html.slice(html.indexOf('>',_bs)+1, _be>=0?_be:undefined) : html;
+  mostrarViewer('📋 Orden de consumo', _bh);
 }
 
 function generarGuiaProduccion(pedidos) {
@@ -2378,7 +2382,46 @@ function generarGuiaProduccion(pedidos) {
   }
 
   html += '</body></html>';
-  mostrarViewer('🏭 Guía de producción', html.replace(/<!DOCTYPE.*?<body[^>]*>/s,'').replace('</body></html>',''));
+    const _bs = html.indexOf('<body');
+  const _be = html.lastIndexOf('</body>');
+  const _bh = _bs>=0 ? html.slice(html.indexOf('>',_bs)+1, _be>=0?_be:undefined) : html;
+  mostrarViewer('🏭 Guía de producción', _bh);
+}
+
+
+// ── Visor HTML genérico ──
+function mostrarViewer(titulo, htmlContent) {
+  const ov = document.getElementById('html-viewer-overlay');
+  const ct = document.getElementById('html-viewer-content');
+  const tt = document.getElementById('html-viewer-title');
+  if(!ov || !ct || !tt) { console.warn('viewer overlay not found'); return; }
+  tt.textContent = titulo;
+  ct.innerHTML = htmlContent;
+  ov.classList.add('show');
+}
+function cerrarViewer() {
+  document.getElementById('html-viewer-overlay')?.classList.remove('show');
+  document.getElementById('html-viewer-content').innerHTML = '';
+}
+function imprimirViewer() {
+  const content = document.getElementById('html-viewer-content')?.innerHTML || '';
+  const win = window.open('','_blank','width=1000,height=750');
+  if(!win) { showToast('⚠ Activa ventanas emergentes'); return; }
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    + '<style>body{font-family:Arial,sans-serif;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style>'
+    + '</head><body>' + content + '</body></html>');
+  win.document.close();
+  win.onload = () => win.print();
+}
+
+// ── Fecha parser robusto (dd/mm/yyyy HH:MM o ISO) ──
+function parseFecha(str) {
+  if(!str) return new Date(0);
+  if(str.includes('T') || /^\d{4}-/.test(str)) return new Date(str);
+  const m = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?/);
+  if(m) return new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]),
+                        parseInt(m[4]||0), parseInt(m[5]||0));
+  return new Date(str);
 }
 
 // ════════════════════════════════════════════════
