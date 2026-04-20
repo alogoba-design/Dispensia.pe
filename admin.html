@@ -305,6 +305,14 @@ tr:hover td{background:var(--vxl);}
           <button class="btn-impr-todo" onclick="imprimirTodosLotes()" id="btn-impr-lote" disabled>
             🖨 Imprimir todas las cartillas
           </button>
+          <button class="btn-cerrar-semana" style="background:#1565C0;color:#fff;"
+            onclick="generarPDFOrdenConsumo(getPedidosSemana())">
+            📋 Orden de consumo
+          </button>
+          <button class="btn-cerrar-semana" style="background:#6A1B9A;color:#fff;"
+            onclick="generarGuiaProduccion(getPedidosSemana())">
+            🏭 Guía producción
+          </button>
         </div>
       </div>
 
@@ -1969,6 +1977,281 @@ function renderPreciosMenus(){const tbody=document.getElementById('precios-menus
 function onPrecioChange(inp){const precios=getPreciosMenus();const mk=inp.dataset.menu,d=parseInt(inp.dataset.d),p=parseInt(inp.dataset.p),v=parseInt(inp.value)||0;if(!precios[mk])precios[mk]={};if(!precios[mk][d])precios[mk][d]={};precios[mk][d][p]=v;localStorage.setItem('dispensia_precios_menus',JSON.stringify(precios));}
 async function guardarPreciosMenus(){const precios=getPreciosMenus();await pushConfigToSupabase('precios_menus',precios);const msg=document.getElementById('precios-saved-msg');if(msg){msg.style.display='block';msg.textContent='✅ Precios guardados en Supabase';setTimeout(()=>msg.style.display='none',4000);}showToast('✅ Precios actualizados en el landing');}
 
+
+// ══════════════════════════════════════════════════════════════
+// PDF ORDEN DE CONSUMO — todos los pedidos en uno
+// ══════════════════════════════════════════════════════════════
+const PRIORIDAD_PLATOS = {"Ceviche de Pollo": 1, "Bowl Acevichado de Pollo": 1, "Bowl Criollo Pollo + Camote": 1, "Locro de Zapallo": 1, "Locro con Pollo a la Plancha": 1, "Locro con Bistec": 1, "Pollo con Champiñones a la Crema": 1, "Ensalada de Atún Fit": 1, "Ensalada César con Pollo": 1, "Chijaukay": 1, "Arroz Chaufa Carnívoro": 1, "Piña Chicken Bowl": 1, "Ají de Gallina Cremoso": 2, "Arroz con Pollo": 2, "Estofado de Pollo": 2, "Estofado de Res": 2, "Estofado Criollo": 2, "Estofado Verde de Pollo": 2, "Lentejas Guisadas con Pollo": 2, "Olluquito con Carne": 2, "Lomo Saltado de Res": 2, "Pollo Saltado": 2, "Arroz Tapado": 2, "Tallarines Rojos con Pollo": 2, "Tallarines Rojos con Carne Molida": 2, "Tallarines Verdes + Bistec": 2, "Tallarines Verdes + Milanesa": 2, "Risotto con Pollo": 2, "Teriyaki Bowl": 2, "Seco de Res": 3, "Seco de Pollo Norteño": 3, "Picante de Carne Criollo": 3, "Pollo a la Mostaza": 3, "Adobo de Chancho": 3, "Pollo BBQ": 3, "Pollo al Horno Criollo": 3, "Pollo al Horno + Puré": 3, "Cerdo Agridulce Crocante": 3, "Tonkatsu": 3, "Fettuccini a la Huancaína": 3, "Spaghetti Ragú Bolognese": 3, "Pasta en Salsa Blanca": 3, "Milanesa de Pollo + Quinua": 2};
+const PRIORIDAD_LABEL  = {1:'🔴 Días 1–2', 2:'🟡 Días 2–4', 3:'🟢 Días 3–6'};
+
+function getPlatosOrdenados(pedido) {
+  const menuKey = pedido.menu || 'mesa';
+  const nDias   = pedido.n_dias || 5;
+  const fijos   = nDias>=7 ? (MENUS_FIJOS7[menuKey]||[]) : (MENUS_FIJOS[menuKey]||[]);
+  const elegidos = pedido.platos_elegidos ? pedido.platos_elegidos.split(' | ').filter(Boolean) : [];
+  const todos = menuKey==='custom' ? elegidos : [...new Set([...fijos,...elegidos])];
+  return todos.sort((a,b) => (PRIORIDAD_PLATOS[a]||2) - (PRIORIDAD_PLATOS[b]||2));
+}
+
+function generarPDFOrdenConsumo(pedidos) {
+  if(!pedidos || !pedidos.length) { showToast('⚠ Sin pedidos para generar'); return; }
+  const V = '#0F5D2E', AM = '#F5B93A';
+
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Arial',sans-serif;font-size:11px;color:#222;background:#fff;}
+    .pagina{width:210mm;min-height:148mm;padding:14mm 16mm;page-break-after:always;
+            border-bottom:2px solid #eee;display:flex;flex-direction:column;}
+    .pagina:last-child{page-break-after:auto;border-bottom:none;}
+    .cab{display:flex;justify-content:space-between;align-items:center;
+         border-bottom:2.5px solid ${V};padding-bottom:10px;margin-bottom:12px;}
+    .logo-txt{font-size:18px;font-weight:900;color:${V};letter-spacing:-0.5px;}
+    .pedido-id{font-size:10px;color:#888;text-align:right;}
+    .pedido-id strong{font-size:13px;color:#222;display:block;}
+    .cliente-row{background:#F7FCF8;border-radius:8px;padding:8px 12px;margin-bottom:12px;
+                 display:flex;gap:24px;flex-wrap:wrap;}
+    .cl-item span{color:#888;font-size:9px;text-transform:uppercase;display:block;}
+    .cl-item strong{font-size:11px;}
+    .titulo-orden{font-size:10px;font-weight:700;color:${V};text-transform:uppercase;
+                  letter-spacing:.08em;margin-bottom:8px;}
+    .plato-row{display:flex;align-items:center;gap:10px;padding:7px 10px;
+               border-radius:7px;margin-bottom:5px;}
+    .pr-1{background:#FFE8E8;border-left:3px solid #E53935;}
+    .pr-2{background:#FFF8E1;border-left:3px solid #F5B93A;}
+    .pr-3{background:#E8F5EE;border-left:3px solid ${V};}
+    .p-emoji{font-size:16px;flex-shrink:0;}
+    .p-nombre{font-weight:700;font-size:11px;flex:1;}
+    .p-dias{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;
+            white-space:nowrap;}
+    .pr-1 .p-dias{background:#E53935;color:#fff;}
+    .pr-2 .p-dias{background:#F5B93A;color:#7D4E00;}
+    .pr-3 .p-dias{background:${V};color:#fff;}
+    .nota-pie{margin-top:auto;padding-top:10px;border-top:1px solid #EEE;
+              font-size:9px;color:#AAA;text-align:center;}
+    .leyenda{display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap;}
+    .ley-item{display:flex;align-items:center;gap:5px;font-size:9px;}
+    .ley-dot{width:10px;height:10px;border-radius:50%;}
+    @media print{.pagina{page-break-after:always;}body{-webkit-print-color-adjust:exact;}}
+  </style></head><body>`;
+
+  pedidos.forEach(p => {
+    const platos = getPlatosOrdenados(p);
+    const emoji_menu = {mesa:'🍛',express:'⚡',nortena:'🫕',criolla:'🥘',
+                        fusion:'🥢',buena:'🍽️',criollolima:'🔥',fit:'🥗',custom:'⭐'};
+
+    html += `<div class="pagina">
+      <div class="cab">
+        <div class="logo-txt">Dispensia</div>
+        <div class="pedido-id">
+          <strong>${p.id}</strong>
+          ${p.fecha||''}
+        </div>
+      </div>
+      <div class="cliente-row">
+        <div class="cl-item"><span>Cliente</span><strong>${p.nombre||'—'}</strong></div>
+        <div class="cl-item"><span>Menú</span><strong>${emoji_menu[p.menu]||''} ${p.menu_nombre||p.menu}</strong></div>
+        <div class="cl-item"><span>Plan</span><strong>${p.n_dias} días · ${p.porciones} personas</strong></div>
+        <div class="cl-item"><span>Entrega</span><strong>${p.distrito||''}</strong></div>
+      </div>
+      <div class="titulo-orden">📋 Orden de consumo recomendado</div>
+      <div class="leyenda">
+        <div class="ley-item"><div class="ley-dot" style="background:#E53935"></div>Consumir primero (días 1–2)</div>
+        <div class="ley-item"><div class="ley-dot" style="background:#F5B93A"></div>Días 2–4</div>
+        <div class="ley-item"><div class="ley-dot" style="background:#0F5D2E"></div>Puede ir al final</div>
+      </div>`;
+
+    platos.forEach((nombre,i) => {
+      const r = RECETAS_DB[nombre];
+      const pr = PRIORIDAD_PLATOS[nombre] || 2;
+      html += `<div class="plato-row pr-${pr}">
+        <span class="p-emoji">${r?.emoji||'🍽️'}</span>
+        <span class="p-nombre">${nombre}</span>
+        <span class="p-dias">${PRIORIDAD_LABEL[pr]}</span>
+      </div>`;
+    });
+
+    html += `<div class="nota-pie">
+        Guarda todo en refrigeración al recibir · 997 112 625
+      </div>
+    </div>`;
+  });
+
+  html += '</body></html>';
+
+  const win = window.open('','_blank','width=900,height=700');
+  if(!win){ showToast('⚠ Permite ventanas emergentes para imprimir'); return; }
+  win.document.write(html);
+  win.document.close();
+  win.onload = () => { win.print(); };
+}
+
+// ══════════════════════════════════════════════════════════════
+// GUÍA OPERATIVA DE PRODUCCIÓN
+// ══════════════════════════════════════════════════════════════
+function generarGuiaProduccion(pedidos) {
+  if(!pedidos || !pedidos.length) { showToast('⚠ Sin pedidos'); return; }
+
+  // Acumular: por cada tipo de preparación
+  // sellado: {nombre_prot: {bolsas_2p, bolsas_4p, bolsas_6p, total_kg_o_un}}
+  // frascos: {nombre_salsa: {cantidad_frascos, ingredientes_totales}}
+
+  const sellado  = {}; // proteínas al vacío
+  const frascos  = {}; // salsas y líquidos en frasquito
+  const kraft    = {}; // verduras en bolsa kraft
+  const empaque  = {cajas:0, bolsas_vacio:0, bolsas_kraft:0, frasquitos:0};
+
+  pedidos.forEach(p => {
+    const menuKey = p.menu || 'mesa';
+    const nDias   = p.n_dias || 5;
+    const porc    = p.porciones || 4;
+    const factor  = porc===2?0.5:porc===6?1.5:1.0;
+    const fijos   = nDias>=7 ? (MENUS_FIJOS7[menuKey]||[]) : (MENUS_FIJOS[menuKey]||[]);
+    const elegidos = p.platos_elegidos ? p.platos_elegidos.split(' | ').filter(Boolean) : [];
+    const lista   = menuKey==='custom' ? elegidos : [...new Set([...fijos,...elegidos])];
+
+    empaque.cajas++;
+    empaque.bolsas_kraft += nDias;
+
+    lista.forEach(nombre => {
+      const r = RECETAS_DB[nombre];
+      if(!r) return;
+      r.ingredientes.forEach(grp => {
+        grp.items.forEach(item => {
+          const [nm, qty, u, nota] = item;
+          const nota_l = (nota||'').toLowerCase();
+          const nm_l   = nm.toLowerCase();
+
+          // Skip if client-side (no unit or qty is string like c/n)
+          if(typeof qty !== 'number') return;
+
+          // Classify by presentation
+          if(nota_l.includes('vacío') || nota_l.includes('vacio')) {
+            // Sellado al vacío
+            if(!sellado[nm]) sellado[nm] = {bolsas_2p:0,bolsas_4p:0,bolsas_6p:0,total:0,u};
+            if(porc===2) sellado[nm].bolsas_2p++;
+            else if(porc===4) sellado[nm].bolsas_4p++;
+            else sellado[nm].bolsas_6p++;
+            sellado[nm].total += qty * factor;
+            empaque.bolsas_vacio++;
+          } else if(nota_l.includes('frasquito') || nota_l.includes('frasco')) {
+            // Frasquito
+            if(!frascos[nm]) frascos[nm] = {cantidad:0,total:0,u};
+            frascos[nm].cantidad++;
+            frascos[nm].total += qty * factor;
+            empaque.frasquitos++;
+          } else if(nota_l.includes('kraft') || nota_l.includes('bolsa kraft')) {
+            // Bolsa kraft
+            if(!kraft[nm]) kraft[nm] = {cantidad:0,total:0,u};
+            kraft[nm].cantidad++;
+            kraft[nm].total += qty * factor;
+          }
+        });
+      });
+    });
+  });
+
+  const V = '#0F5D2E';
+  const nPed = pedidos.length;
+
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:Arial,sans-serif;font-size:11px;color:#222;padding:16mm 18mm;}
+    h1{font-size:20px;color:${V};font-weight:900;margin-bottom:4px;}
+    .sub{font-size:11px;color:#888;margin-bottom:20px;}
+    .seccion{margin-bottom:24px;}
+    .sec-title{font-size:13px;font-weight:700;color:#fff;background:${V};
+               padding:7px 14px;border-radius:8px;margin-bottom:10px;}
+    .fila{display:flex;align-items:flex-start;gap:0;border-bottom:1px solid #F0F0F0;padding:8px 0;}
+    .fila:last-child{border-bottom:none;}
+    .f-nombre{flex:2;font-weight:600;}
+    .f-total{flex:1;color:${V};font-weight:700;}
+    .f-dist{flex:3;font-size:10px;color:#555;line-height:1.6;}
+    .f-nota{flex:2;font-size:10px;color:#888;font-style:italic;}
+    .resumen{background:#F7FCF8;border-radius:10px;padding:12px 16px;
+             display:flex;gap:24px;flex-wrap:wrap;margin-bottom:20px;}
+    .res-item span{font-size:9px;color:#888;text-transform:uppercase;display:block;}
+    .res-item strong{font-size:15px;color:${V};}
+    @media print{body{padding:10mm;}-webkit-print-color-adjust:exact;}
+  </style></head><body>
+  <h1>📋 Guía de Producción Semanal</h1>
+  <div class="sub">${new Date().toLocaleDateString('es-PE')} · ${nPed} pedidos activos</div>
+
+  <div class="resumen">
+    <div class="res-item"><span>Pedidos</span><strong>${nPed}</strong></div>
+    <div class="res-item"><span>Cajas</span><strong>${empaque.cajas}</strong></div>
+    <div class="res-item"><span>Bolsas vacío</span><strong>${empaque.bolsas_vacio}</strong></div>
+    <div class="res-item"><span>Frasquitos</span><strong>${empaque.frasquitos}</strong></div>
+    <div class="res-item"><span>Bolsas kraft</span><strong>${empaque.bolsas_kraft}</strong></div>
+  </div>`;
+
+  // SECCIÓN 1: Sellado al vacío
+  const sel_entries = Object.entries(sellado).filter(([,v])=>v.total>0);
+  if(sel_entries.length) {
+    html += `<div class="seccion"><div class="sec-title">🔒 SELLADO AL VACÍO</div>`;
+    sel_entries.sort((a,b)=>b[1].total-a[1].total).forEach(([nm,d])=>{
+      const dist_parts = [];
+      if(d.bolsas_2p) dist_parts.push(`${d.bolsas_2p} bolsa${d.bolsas_2p>1?'s':''} de 2 p.`);
+      if(d.bolsas_4p) dist_parts.push(`${d.bolsas_4p} bolsa${d.bolsas_4p>1?'s':''} de 4 p.`);
+      if(d.bolsas_6p) dist_parts.push(`${d.bolsas_6p} bolsa${d.bolsas_6p>1?'s':''} de 6 p.`);
+      const total_str = d.u==='un'
+        ? `${d.total.toFixed(1)} un → aprox. ${(d.total*1.2).toFixed(1)} kg`
+        : `${(d.total*1.1).toFixed(2)} ${d.u} (+10%)`;
+      html += `<div class="fila">
+        <div class="f-nombre">${nm}</div>
+        <div class="f-total">${total_str}</div>
+        <div class="f-dist">${dist_parts.join(' · ')}</div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  // SECCIÓN 2: Frasquitos
+  const fra_entries = Object.entries(frascos).filter(([,v])=>v.total>0);
+  if(fra_entries.length) {
+    html += `<div class="seccion"><div class="sec-title">🫙 FRASQUITOS (salsas, pastas de ají, líquidos)</div>`;
+    fra_entries.sort((a,b)=>b[1].cantidad-a[1].cantidad).forEach(([nm,d])=>{
+      const qty_str = d.u==='ml'
+        ? `${(d.total*1.1).toFixed(0)} ml total → ${d.cantidad} frasquitos (~${Math.ceil(d.total/d.cantidad)} ml c/u)`
+        : d.u==='g'
+        ? `${(d.total*1.1).toFixed(0)} g total → ${d.cantidad} frasquitos (~${Math.ceil(d.total/d.cantidad)} g c/u)`
+        : `${d.cantidad} frasquitos`;
+      html += `<div class="fila">
+        <div class="f-nombre">${nm}</div>
+        <div class="f-total">${d.cantidad} frasquitos</div>
+        <div class="f-dist">${qty_str}</div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  // SECCIÓN 3: Bolsas kraft (verduras)
+  const kra_entries = Object.entries(kraft).filter(([,v])=>v.total>0);
+  if(kra_entries.length) {
+    html += `<div class="seccion"><div class="sec-title">🛍️ BOLSAS KRAFT (verduras pre-cortadas)</div>`;
+    kra_entries.sort((a,b)=>b[1].cantidad-a[1].cantidad).forEach(([nm,d])=>{
+      const qty_str = typeof d.total==='number'
+        ? `${(d.total*1.1).toFixed(d.u==='kg'?2:1)} ${d.u} total`
+        : `${d.cantidad} bolsas`;
+      html += `<div class="fila">
+        <div class="f-nombre">${nm}</div>
+        <div class="f-total">${d.cantidad} bolsas</div>
+        <div class="f-dist">${qty_str}</div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  html += '</body></html>';
+
+  const win = window.open('','_blank','width=1000,height=750');
+  if(!win){ showToast('⚠ Permite ventanas emergentes'); return; }
+  win.document.write(html);
+  win.document.close();
+  win.onload = () => win.print();
+}
+
 function renderAll(){renderDashboard();renderPedidos();}
 
 // ── DEMO DATA ──
@@ -2129,7 +2412,7 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"La carne",items:[["Bondiola de cerdo",1000,"g","en presas"]]},
       {g:"El adobo",items:[["Aceite de oliva",100,"ml",""],["Cebolla picada",150,"g",""],["Ajo molido",50,"g",""],["Ají panca",90,"g",""],["Ají amarillo",60,"g",""],["Orégano seco",1,"g",""],["Hojas de laurel",2,"un",""],["Chicha de jora",300,"ml",""],["Caldo de pollo","c/n","",""],["Sal, pimienta, comino","al gusto","",""]]},
-      {g:"Para servir",items:[["Camote sancochado",400,"g",""],["Yuca sancochada",300,"g",""],["Cebolla roja",60,"g","encurtida"],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"Para servir",items:[["Camote sancochado",400,"g",""],["Yuca sancochada",300,"g",""],["Cebolla roja",60,"g","encurtida"],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Sellar el cerdo",d:"En olla con aceite, sellar las presas sazonadas con sal, pimienta y comino. Dorar bien por ambos lados. Reservar."},
@@ -2146,7 +2429,7 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"Para el pollo",items:[["Pollo entero en presas",1,"un","≈2.5 kg"],["Pasta de ají panca",6,"cdas",""],["Ajo molido",4,"cdas",""],["Salsa de soya",3,"cdas",""],["Vinagre rojo",3,"cdas",""],["Cerveza rubia",120,"ml","½ taza"],["Comino",1,"cdita",""],["Orégano seco",1,"cda",""],["Aceite vegetal",4,"cdas",""]]},
       {g:"Ají de huacatay",items:[["Ajíes amarillos frescos",4,"un",""],["Cebolla roja",1,"un","grande"],["Dientes de ajo",2,"un",""],["Hojas de huacatay",1,"taza","fresco"],["Aceite vegetal",4,"cdas",""],["Sal, pimienta","al gusto","",""]]},
-      {g:"Guarnición",items:[["Papas blancas medianas",6,"un","sancochadas"],["Lechuga, repollo, tomate","c/n","","para ensalada"],["Limones",2,"un",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"Guarnición",items:[["Papas blancas medianas",6,"un","sancochadas"],["Lechuga, repollo, tomate","c/n","","para ensalada"],["Limones",2,"un",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Marinar el pollo",d:"Mezclar todos los ingredientes del marinado. Cubrir bien las presas. Dejar reposar mínimo 2 horas (idealmente toda la noche en el refrigerador)."},
@@ -2162,7 +2445,7 @@ const RECETAS_DB = {
     color:"#B5651D",
     ingredientes:[
       {g:"Marinado",items:[["Presas de pollo",5,"un","piernas y encuentros"],["Pasta de ají panca",3,"cdas",""],["Pasta de ají amarillo",1,"cda",""],["Sillao",60,"ml","¼ taza"],["Cerveza rubia",60,"ml","¼ taza"],["Mostaza",1,"cda",""],["Vinagre tinto",1,"cda",""],["Ajo molido",1,"cdita",""],["Orégano, comino, sal, pimienta","al gusto","",""]]},
-      {g:"Ensalada Rusa",items:[["Papas blancas cocidas",2,"un","en cubos"],["Zanahorias cocidas",2,"un","en cubos"],["Betarraga cocida",1,"un","en cubos"],["Vainitas cocidas",150,"g","picadas"],["Arvejitas cocidas",150,"g",""],["Choclo desgranado cocido",1,"un",""],["Mayonesa",120,"ml","½ taza"],["Limón",1,"un","el jugo"],["Perejil fresco","al gusto","","picado"],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"Ensalada Rusa",items:[["Papas blancas cocidas",2,"un","en cubos"],["Zanahorias cocidas",2,"un","en cubos"],["Betarraga cocida",1,"un","en cubos"],["Vainitas cocidas",150,"g","picadas"],["Arvejitas cocidas",150,"g",""],["Choclo desgranado cocido",1,"un",""],["Mayonesa",120,"ml","½ taza"],["Limón",1,"un","el jugo"],["Perejil fresco","al gusto","","picado"],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Marinar el pollo",d:"Mezclar todos los ingredientes del marinado. Cubrir bien las presas. Mínimo 2 horas o toda la noche en frío."},
@@ -2179,7 +2462,7 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"La carne",items:[["Costillas de cerdo",1000,"g",""],["Brazuelo de cerdo",1000,"g","trozado"],["Costilla ahumada",300,"g",""],["Tocino ahumado",150,"g",""]]},
       {g:"Aderezo y líquidos",items:[["Cebollas picadas",2,"un",""],["Ajo picado",80,"g",""],["Ají panca",100,"g",""],["Pasta ají amarillo",50,"g",""],["Pasta de tomate",50,"g",""],["Hojas de laurel",2,"un",""],["Hongo seco",80,"g",""],["Vino tinto",250,"ml",""],["Caldo de pollo",2,"lt",""],["Tomates licuados",8,"un",""]]},
-      {g:"Guarnición",items:[["Papa blanca en cubos",500,"g",""],["Alverjitas",100,"g",""],["Zanahorias picadas",2,"un",""],["Pimiento en tiras",80,"g",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"Guarnición",items:[["Papa blanca en cubos",500,"g",""],["Alverjitas",100,"g",""],["Zanahorias picadas",2,"un",""],["Pimiento en tiras",80,"g",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Sellar el cerdo",d:"Aceite en olla a fuego alto. Dorar costillas y brazuelo sazonados con sal y pimienta. Bien dorados por todos lados. Reservar."},
@@ -2197,7 +2480,7 @@ const RECETAS_DB = {
       {g:"La carne",items:[["Res cadera en trozos",800,"g",""]]},
       {g:"Aderezo",items:[["Cebollas picadas",2,"un",""],["Ajo molido",6,"dientes",""],["Pasta de ají panca",2,"cdas",""],["Pasta de ají amarillo",1,"cda",""],["Pasta de tomate",2,"cdas",""],["Hojas de laurel",2,"un",""],["Sal, pimienta, comino, orégano","al gusto","",""]]},
       {g:"Líquidos",items:[["Cerveza negra",330,"ml","1 botella"],["Vino tinto",150,"ml",""],["Tomates licuados",6,"un",""],["Caldo de res","c/n","",""]]},
-      {g:"Guarnición",items:[["Papa blanca en cubos",400,"g",""],["Choclo desgranado","c/n","",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"Guarnición",items:[["Papa blanca en cubos",400,"g",""],["Choclo desgranado","c/n","",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Sellar la res",d:"Aceite caliente en olla. Salpimentar la carne. Sellar por todos lados hasta bien dorada y caramelizada. Retirar y reservar."},
@@ -2230,7 +2513,7 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"Pollo y arroz",items:[["Presas de pollo",4,"un",""],["Arroz extra añejo",2,"tazas",""],["Chicha de jora o cerveza",1,"taza",""]]},
       {g:"La base verde",items:[["Cebolla roja",1,"un",""],["Ajo",6,"dientes",""],["Ají amarillo",1,"un",""],["Culantro fresco",1,"atado","para licuar"],["Espinaca fresca",1,"taza",""],["Sal, pimienta, comino, palillo","al gusto","",""]]},
-      {g:"Extras",items:[["Zanahoria en cubos",1,"un",""],["Alverjitas",50,"g",""],["Choclo desgranado","c/n","",""],["Caldo de pollo",2,"tazas",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"Extras",items:[["Zanahoria en cubos",1,"un",""],["Alverjitas",50,"g",""],["Choclo desgranado","c/n","",""],["Caldo de pollo",2,"tazas",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Dorar el pollo",d:"Sellar las presas de pollo con sal y pimienta en aceite caliente. Dorar bien por ambos lados. Reservar."},
@@ -2264,7 +2547,7 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"La carne",items:[["Res cadera o asado en trozos",600,"g",""]]},
       {g:"El aderezo picante",items:[["Cebolla roja picada",1,"un",""],["Ajo molido",4,"dientes",""],["Ajíes colorados o mirasol",3,"un","remojados"],["Ají panca",2,"cdas",""],["Pasta de tomate",1,"cda",""],["Sal, pimienta, comino, orégano","al gusto","",""]]},
-      {g:"Guarnición",items:[["Papa blanca en cubos",400,"g",""],["Choclo desgranado","c/n","",""],["Caldo de res",2,"tazas",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"Guarnición",items:[["Papa blanca en cubos",400,"g",""],["Choclo desgranado","c/n","",""],["Caldo de res",2,"tazas",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Sellar la carne",d:"Aceite muy caliente en olla. Sellar los trozos de res sazonados por todos lados. Dorar bien para capturar el sabor. Retirar."},
@@ -2280,7 +2563,7 @@ const RECETAS_DB = {
     color:"#B7950B",
     ingredientes:[
       {g:"El pollo",items:[["Presas de pollo o pechugas",4,"un",""],["Sal, pimienta, orégano","al gusto","",""]]},
-      {g:"La salsa de mostaza",items:[["Mostaza Dijon",3,"cdas",""],["Crema de leche",200,"ml",""],["Cebolla mediana picada",1,"un",""],["Ajo picado",3,"dientes",""],["Vino blanco seco",100,"ml",""],["Tomillo fresco","c/n","",""],["Mantequilla",1,"cda",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"La salsa de mostaza",items:[["Mostaza Dijon",3,"cdas",""],["Crema de leche",200,"ml",""],["Cebolla mediana picada",1,"un",""],["Ajo picado",3,"dientes",""],["Vino blanco seco",100,"ml",""],["Tomillo fresco","c/n","",""],["Mantequilla",1,"cda",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Dorar el pollo",d:"Sellar las presas sazonadas en mantequilla y aceite hasta bien doradas y con color. Reservar."},
@@ -2297,7 +2580,7 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"Albóndigas",items:[["Res molida",500,"g",""],["Huevo",1,"un",""],["Pan rallado",30,"g",""],["Ajo molido",1,"cda",""],["Cebolla rallada",60,"g","¼ cebolla"],["Sal, pimienta, comino, orégano","al gusto","",""]]},
       {g:"Salsa criolla",items:[["Tomates maduros",4,"un",""],["Cebolla roja",1,"un",""],["Ajo",4,"dientes",""],["Ají panca",2,"cdas",""],["Pasta de tomate",1,"cda",""],["Sal, pimienta, comino","al gusto","",""]]},
-      {g:"Puré de papa",items:[["Papa blanca cocida",500,"g",""],["Leche tibia",100,"ml",""],["Mantequilla",50,"g",""],["Sal","al gusto","",""],["Arroz blanco o Puré de papa","c/n","","según preferencia — el cliente lo prepara"]]}
+      {g:"Puré de papa",items:[["Papa blanca cocida",500,"g",""],["Leche tibia",100,"ml",""],["Mantequilla",50,"g",""],["Sal","al gusto","",""],["Arroz blanco o Puré de papa","c/n","","según preferencia — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Las albóndigas",d:"Mezclar carne molida con huevo, pan rallado, ajo, cebolla rallada y condimentos. Formar bolas del tamaño de una pelota de golf. Enfriar 15 min en el refrigerador."},
@@ -2317,7 +2600,7 @@ const RECETAS_DB = {
     ],
     pasos:[
       {t:"La salsa verde",d:"Sofreír cebolla y ajo en aceite. Agregar ají amarillo y pecanas. Añadir albahaca, espinaca, leche evaporada y queso fresco. Cocinar 3 min."},
-      {t:"Licuar",d:"Procesar todo con batidora o licuadora hasta salsa verde cremosa, homogénea y brillante. Sazonar con sal y pimienta."},
+      {t:"Licuar",d:"Procesar todo con batidora o licuadora hasta salsa verde cremosa, homogénea y brillante. "},
       {t:"El bistec",d:"Sazonar la carne. Pasar por harina, huevo batido y pan rallado presionando bien. Freír en aceite caliente 2-3 min por lado hasta dorado y crocante."},
       {t:"El huevo montado",d:"Freír un huevo por persona con la yema líquida para coronar el plato. La yema que se rompe al comer es parte del ritual."},
       {t:"Servir",d:"Pasta escurrida mezclada con la salsa verde, bistec apanado encima y huevo frito coronando. Queso parmesano rallado generoso."}
@@ -2383,7 +2666,7 @@ const RECETAS_DB = {
     ],
     pasos:[
       {t:"El sofrito",d:"Sofreír cebolla y ajo en aceite. Agregar ají amarillo y ají panca. Cocinar 5 min hasta que el aderezo esté bien integrado y fragante."},
-      {t:"El zapallo",d:"Incorporar el zapallo en cubos. Mezclar con el aderezo. Agregar un poco de agua o caldo. Sazonar con sal y pimienta."},
+      {t:"El zapallo",d:"Incorporar el zapallo en cubos. Mezclar con el aderezo. Agregar un poco de agua o caldo. "},
       {t:"Cocción tapada",d:"Tapar y cocinar a fuego medio 20 min hasta que el zapallo esté muy tierno. Se deshace un poco: está perfecto, así debe ser."},
       {t:"La cremosidad",d:"Agregar la leche evaporada y el queso fresco. Cocinar a fuego bajo 5 min más removiendo suavemente hasta integrar."},
       {t:"Servir",d:"Con arroz blanco, huevo frito y perejil picado. El locro debe quedar cremoso y con cuerpo, no seco ni aguado."}
@@ -2395,7 +2678,7 @@ const RECETAS_DB = {
     color:"#1E8449",
     ingredientes:[
       {g:"Las caiguas",items:[["Caiguas grandes y frescas",4,"un",""],["Agua hirviendo y sal","c/n","","para blanquear"]]},
-      {g:"El relleno",items:[["Res molida",500,"g",""],["Cebolla roja",150,"g","picada"],["Tomate sin piel",100,"g","en cubos"],["Ajo",15,"g","molido"],["Pasta de ají panca",30,"g",""],["Pasta de ají amarillo",30,"g",""],["Pasta de tomate",30,"g",""],["Huevos duros picados",2,"un",""],["Aceitunas de botija",9,"un","picadas"],["Orégano","al gusto","",""],["Sal, pimienta, comino","al gusto","",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"El relleno",items:[["Res molida",500,"g",""],["Cebolla roja",150,"g","picada"],["Tomate sin piel",100,"g","en cubos"],["Ajo",15,"g","molido"],["Pasta de ají panca",30,"g",""],["Pasta de ají amarillo",30,"g",""],["Pasta de tomate",30,"g",""],["Huevos duros picados",2,"un",""],["Aceitunas de botija",9,"un","picadas"],["Orégano","al gusto","",""],["Sal, pimienta, comino","al gusto","",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Preparar las caiguas",d:"Cortar por la mitad a lo largo. Con cuchara, retirar con cuidado todas las pepas y venas blancas dejándolas completamente huecas."},
@@ -2509,7 +2792,7 @@ const RECETAS_DB = {
     color:"#CB4335",
     ingredientes:[
       {g:"El cerdo crocante",items:[["Cerdo lomo en cubos",600,"g",""],["Harina sin preparar","c/n","",""],["Huevos",2,"un","batidos"],["Pan panko",150,"g",""],["Aceite para freír","c/n","",""],["Sal, pimienta","al gusto","",""]]},
-      {g:"La salsa agridulce",items:[["Azúcar rubia",80,"g","½ taza"],["Vinagre blanco",80,"ml","½ taza"],["Ketchup",80,"g","½ taza"],["Sillao",1,"cda",""],["Fécula de maíz",1,"cda","disuel. en agua"],["Pimiento rojo y verde en cubos",1,"un","c/u"],["Piña en cubos",120,"g","½ taza"],["Kion rallado",1,"cda",""],["Ajo picado",2,"dientes",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"La salsa agridulce",items:[["Azúcar rubia",80,"g","½ taza"],["Vinagre blanco",80,"ml","½ taza"],["Ketchup",80,"g","½ taza"],["Sillao",1,"cda",""],["Fécula de maíz",1,"cda","disuel. en agua"],["Pimiento rojo y verde en cubos",1,"un","c/u"],["Piña en cubos",120,"g","½ taza"],["Kion rallado",1,"cda",""],["Ajo picado",2,"dientes",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Rebozar y freír",d:"Sazonar cubos de cerdo. Pasar por harina, huevo y panko presionando bien. Freír en aceite caliente a 170°C, 3-4 min hasta dorado y crocante. Escurrir."},
@@ -2597,7 +2880,7 @@ const RECETAS_DB = {
       {g:"Para servir",items:[["Arroz blanco","c/n","","graneado"]]}
     ],
     pasos:[
-      {t:"Sellar la proteína",d:"Aceite en olla a fuego medio-alto. Sazonar con sal, pimienta y comino. Sellar la proteína por todos lados hasta dorada. Reservar."},
+      {t:"Sellar la proteína",d:"Aceite en olla a fuego medio-alto. Sellar la proteína por todos lados hasta dorada. Reservar."},
       {t:"El aderezo",d:"Misma olla: sofreír cebolla y ajo 4 min. Agregar ají panca. Cocinar 3 min removiendo."},
       {t:"Construir el guiso",d:"Incorporar la proteína. Agregar vino tinto, evaporar 2 min. Añadir laurel, papa y zanahoria."},
       {t:"Cocción lenta",d:"Cubrir con agua o caldo. Tapar y cocinar 30-35 min a fuego bajo hasta que todo esté tierno."},
@@ -2612,7 +2895,7 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"La carne",items:[["Res cadera en cubos",400,"g","sellada al vacío"]]},
       {g:"La base verde",items:[["Culantro fresco",30,"g",""],["Chicha de jora",200,"ml","frasquito"],["Ají amarillo pasta",30,"g","frasquito"],["Cebolla blanca",1,"un",""],["Ajo molido",10,"g",""]]},
-      {g:"El guiso",items:[["Arvejas",80,"g",""],["Frejoles",150,"g","remojar noche anterior"],["Papa blanca","c/n","","cruda"],["Sal, pimienta, comino","al gusto","",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"El guiso",items:[["Arvejas",80,"g",""],["Frejoles",150,"g","remojar noche anterior"],["Papa blanca","c/n","","cruda"],["Sal, pimienta, comino","al gusto","",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"La base verde",d:"Licuar culantro con chicha de jora y ají amarillo. Reservar."},
@@ -2630,7 +2913,7 @@ const RECETAS_DB = {
     ingredientes:[
       {g:"El pollo",items:[["Presas de pollo",400,"g","selladas al vacío"]]},
       {g:"Las lentejas",items:[["Lentejas secas",150,"g",""],["Zanahoria",1,"un","en cubos"],["Culantro fresco",15,"g",""]]},
-      {g:"El aderezo",items:[["Cebolla blanca",1,"un",""],["Ajo molido",10,"g",""],["Ají amarillo pasta",30,"g",""],["Ají panca pasta",20,"g",""],["Tomate",1,"un",""],["Sal, pimienta, comino","al gusto","",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"El aderezo",items:[["Cebolla blanca",1,"un",""],["Ajo molido",10,"g",""],["Ají amarillo pasta",30,"g",""],["Ají panca pasta",20,"g",""],["Tomate",1,"un",""],["Sal, pimienta, comino","al gusto","",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Dorar el pollo",d:"Aceite en olla. Sazonar con sal, pimienta y comino. Dorar bien por ambos lados. Reservar."},
@@ -2683,7 +2966,7 @@ const RECETAS_DB = {
     color:"#B5651D",
     ingredientes:[
       {g:"El pollo (marinado)",items:[["Piernas/muslos de pollo",500,"g","sellados al vacío, ya marinados"]]},
-      {g:"El puré",items:[["Papa blanca",500,"g","entera cruda"],["Leche evaporada",200,"ml","caja"],["Mantequilla",60,"g","ziplock"],["Sal, pimienta, nuez moscada","al gusto","",""],["Arroz blanco o Puré de papa","c/n","","según preferencia — el cliente lo prepara"]]}
+      {g:"El puré",items:[["Papa blanca",500,"g","entera cruda"],["Leche evaporada",200,"ml","caja"],["Mantequilla",60,"g","ziplock"],["Sal, pimienta, nuez moscada","al gusto","",""],["Arroz blanco o Puré de papa","c/n","","según preferencia — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Precalentar el horno",d:"Horno a 180°C. El pollo ya viene marinado — colocar directo en fuente con chorrito de aceite."},
@@ -2700,7 +2983,7 @@ const RECETAS_DB = {
     color:"#4E342E",
     ingredientes:[
       {g:"El pollo",items:[["Piernas/muslos de pollo",500,"g","sellados al vacío"]]},
-      {g:"La salsa",items:[["Champiñones frescos",250,"g","bolsa SECA sin lavar"],["Crema de leche UHT",200,"ml",""],["Vino blanco seco",100,"ml","frasquito"],["Ajo molido","al gusto","",""],["Perejil fresco","al gusto","",""],["Sal, pimienta","al gusto","",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"La salsa",items:[["Champiñones frescos",250,"g","bolsa SECA sin lavar"],["Crema de leche UHT",200,"ml",""],["Vino blanco seco",100,"ml","frasquito"],["Ajo molido","al gusto","",""],["Perejil fresco","al gusto","",""],["Sal, pimienta","al gusto","",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Sellar el pollo",d:"Aceite en sartén. Sellar las presas por ambos lados hasta doradas. Reservar."},
@@ -2769,7 +3052,7 @@ const RECETAS_DB = {
     desc:"Pollo a la plancha sobre lechuga romana crujiente, parmesano rallado, crutones y aderezo césar.",
     color:"#00695C",
     ingredientes:[
-      {g:"El pollo",items:[["Pechuga de pollo",300,"g","sellada al vacío, sazonada"]]},
+      {g:"El pollo",items:[["Pechuga de pollo",300,"g","sellada al vacío — sin condimentos"]]},
       {g:"La ensalada",items:[["Lechuga romana",1,"un","lavar al momento, NO cortar"],["Queso parmesano rallado",50,"g",""],["Crutones",50,"g","pan tostado seco"]]},
       {g:"El aderezo",items:[["Aderezo césar",80,"g","frasquito"],["Limón",1,"un",""]]}
     ],
@@ -2805,7 +3088,7 @@ const RECETAS_DB = {
     color:"#00695C",
     ingredientes:[
       {g:"El pollo glaseado",items:[["Pechuga de pollo en tiras",300,"g","sellada al vacío"],["Sillao",30,"ml","frasquito"],["Miel de abeja",20,"g","ziplock"]]},
-      {g:"El bowl",items:[["Arroz",180,"g",""],["Piña fresca en cubos",150,"g","bolsa kraft"],["Palta",1,"un","partir al servir"],["Tomate",1,"un","en cubos"],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"El bowl",items:[["Arroz",180,"g",""],["Piña fresca en cubos",150,"g","bolsa kraft"],["Palta",1,"un","partir al servir"],["Tomate",1,"un","en cubos"],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"El arroz",d:"Cocinar el arroz blanco graneado. Reservar caliente."},
@@ -2823,10 +3106,10 @@ const RECETAS_DB = {
     utensilios:"Olla mediana con tapa, cuchillo, tabla de cortar, cuchara de palo",
     despensa:"Sal, pimienta, comino, aceite vegetal, agua o caldo",
     ingredientes:[
-      {g:"Proteína",items:[["Pollo entero (trozado en presas)",1,"un","sellado al vacío con sal/pimienta/comino"]]},
+      {g:"Proteína",items:[["Pollo entero (trozado en presas)",1,"un","sellado al vacío — sin condimentos"]]},
       {g:"Aderezo — frasquito",items:[["Ají panca pasta",40,"g",""],["Vino tinto seco",100,"ml",""]]},
       {g:"Verduras — bolsa kraft",items:[["Zanahoria",1,"un","pelada en rodajas"],["Aceitunas verdes",30,"g","ziplock"]]},
-      {g:"Del cliente",items:[["Papa blanca",3,"un","entera cruda"],["Cebolla blanca",1,"un",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"Del cliente",items:[["Papa blanca",3,"un","entera cruda"],["Cebolla blanca",1,"un",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Sellar el pollo",d:"Aceite en olla a fuego medio-alto. Sellar las presas de pollo por todos lados hasta doradas. Retirar y reservar."},
@@ -2846,7 +3129,7 @@ const RECETAS_DB = {
       {g:"Proteína",items:[["Res cadera en cubos",400,"g","sellada al vacío"]]},
       {g:"Aderezo — frasquito",items:[["Ají panca pasta",40,"g",""],["Vino tinto seco",100,"ml",""]]},
       {g:"Verduras — bolsa kraft",items:[["Zanahoria",1,"un","pelada en rodajas"],["Aceitunas verdes",30,"g","ziplock"]]},
-      {g:"Del cliente",items:[["Papa blanca",3,"un","entera cruda"],["Cebolla blanca",1,"un",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"Del cliente",items:[["Papa blanca",3,"un","entera cruda"],["Cebolla blanca",1,"un",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Sellar la res",d:"Aceite MUY caliente en olla. Sazonar res con sal, pimienta y comino. Sellar por todos lados hasta caramelizada. Reservar."},
@@ -2863,9 +3146,9 @@ const RECETAS_DB = {
     utensilios:"Olla mediana o olla a presión, cuchillo, tabla",
     despensa:"Sal, pimienta, comino, orégano, aceite vegetal, agua",
     ingredientes:[
-      {g:"Proteína",items:[["Cerdo bondiola en presas",500,"g","sellado al vacío con sal/pimienta"]]},
+      {g:"Proteína",items:[["Cerdo bondiola en presas",500,"g","sellado al vacío — sin condimentos"]]},
       {g:"Salsa — frasquito",items:[["Chicha de jora",200,"ml",""],["Ají panca pasta",60,"g",""],["Ají amarillo pasta",40,"g",""]]},
-      {g:"Del cliente",items:[["Cebolla blanca",1,"un",""],["Camote",2,"un","entero crudo"],["Laurel",2,"hojas",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]}
+      {g:"Del cliente",items:[["Cebolla blanca",1,"un",""],["Camote",2,"un","entero crudo"],["Laurel",2,"hojas",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]}
     ],
     pasos:[
       {t:"Sellar el cerdo",d:"Aceite a fuego alto. Sellar las presas de cerdo por todos lados hasta muy doradas. Reservar."},
@@ -2882,10 +3165,10 @@ const RECETAS_DB = {
     utensilios:"Olla mediana, sartén o plancha, cuchillo, tabla",
     despensa:"Sal, pimienta, aceite vegetal, agua",
     ingredientes:[
-      {g:"Proteína",items:[["Pollo pechuga",300,"g","sellada al vacío, sazonada"]]},
+      {g:"Proteína",items:[["Pollo pechuga",300,"g","sellada al vacío — sin condimentos"]]},
       {g:"El locro — frasquito",items:[["Ají amarillo pasta",40,"g",""],["Leche evaporada",200,"ml",""],["Queso fresco",80,"g","ziplock"]]},
       {g:"Verduras — bolsa kraft",items:[["Zapallo macre en cubos",400,"g","3×3 cm"]]},
-      {g:"Del cliente",items:[["Papa blanca",2,"un","entera cruda"],["Choclo",1,"un","entero"],["Cebolla blanca",1,"un",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]},
+      {g:"Del cliente",items:[["Papa blanca",2,"un","entera cruda"],["Choclo",1,"un","entero"],["Cebolla blanca",1,"un",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]},
     ],
     pasos:[
       {t:"El locro",d:"Sofreír cebolla y ajo picados. Agregar ají amarillo del frasquito 2 min. Incorporar zapallo y choclo desgranado. Cubrir con agua y cocinar 15 min hasta muy tierno."},
@@ -2904,12 +3187,12 @@ const RECETAS_DB = {
       {g:"Proteína",items:[["Bistec de res cadera",250,"g","sellado al vacío, sazonado"]]},
       {g:"El locro — frasquito",items:[["Ají amarillo pasta",40,"g",""],["Leche evaporada",200,"ml",""],["Queso fresco",80,"g","ziplock"]]},
       {g:"Verduras — bolsa kraft",items:[["Zapallo macre en cubos",400,"g","3×3 cm"]]},
-      {g:"Del cliente",items:[["Papa blanca",2,"un","entera cruda"],["Choclo",1,"un","entero"],["Cebolla blanca",1,"un",""],["Arroz blanco","c/n","","graneado — el cliente lo prepara"]]},
+      {g:"Del cliente",items:[["Papa blanca",2,"un","entera cruda"],["Choclo",1,"un","entero"],["Cebolla blanca",1,"un",""],["Arroz blanco","c/n","","graneado — lo preparas en casa"]]},
     ],
     pasos:[
       {t:"El locro",d:"Sofreír cebolla y ajo 4 min. Agregar ají amarillo 2 min. Zapallo y choclo. Cubrir con agua y cocinar 15 min hasta muy tierno."},
       {t:"La crema",d:"Leche evaporada y queso fresco. Cocinar 5 min. Rectificar sal. Agregar papa sancochada en cubos."},
-      {t:"El bistec",d:"Sartén MUY caliente con aceite. Sazonar con sal y pimienta. Sellar el bistec 2-3 min por lado — debe quedar jugoso por dentro."},
+      {t:"El bistec",d:"Sartén MUY caliente con aceite.  Sellar el bistec 2-3 min por lado — debe quedar jugoso por dentro."},
       {t:"Servir",d:"Con arroz blanco graneado. Locro cremoso con el bistec al costado o encima en tiras. El locro de zapallo pide ese contraste de la carne sellada."}
     ]
   },
@@ -3398,6 +3681,11 @@ function cerrarSemana() {
   renderSemanal();
   renderDashboard();
   showToast(`✓ Semana cerrada — ${pedidos.length} pedidos en preparación`);
+  // Auto-generar ambos PDFs
+  setTimeout(() => {
+    generarPDFOrdenConsumo(pedidos);
+    setTimeout(() => generarGuiaProduccion(pedidos), 800);
+  }, 400);
 }
 
 // ── KPIs ──
